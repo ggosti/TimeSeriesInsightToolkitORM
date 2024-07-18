@@ -12,13 +12,22 @@ groups_schema = GroupSchema(many=True)
 record_schema = RecordSchema()
 records_schema = RecordSchema(many=True)
 
+def get_step_id_by_name(session, step_name):
+    step = session.query(Step).filter_by(name=step_name).first()
+    return step.id if step else None
+
 def get_steps():
     session = SessionLocal()
     steps = session.query(Step).all()
     return jsonify(steps_schema.dump(steps))
 
-def get_step_events(step_id):
+def get_step_events(step_name):
+    print('step_name',step_name)
     session = SessionLocal()
+    #step = session.query(Step).filter(Step.name == step_name).all()
+    #print(step[0],step[0].id)
+    step_id = get_step_id_by_name(session, step_name)
+    print('step_id',step_id)
     events = session.query(Event).filter(Event.step_id == step_id).all()
     return jsonify(events_schema.dump(events))
 

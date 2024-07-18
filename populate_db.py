@@ -2,6 +2,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from models import Base, Step, Event, Group, Record
 import os
+from db import SessionLocal,init_db
 
 def get_sub_dirs(path):
     #print('path',path,os.listdir(path))
@@ -9,23 +10,25 @@ def get_sub_dirs(path):
     return subdirs
 
 # Replace 'sqlite:///your_database.db' with your actual database connection string
-DATABASE_URL = "sqlite:///data/data.db"
+#DATABASE_URL = "sqlite:///data/data.db"
 
 # Create engine
-engine = create_engine(DATABASE_URL)
+#engine = create_engine(DATABASE_URL)
 
 # Bind the engine to the metadata of the Base class so that the declaratives can be accessed through a DBSession instance
-Base.metadata.bind = engine
+#Base.metadata.bind = engine
 
 # Create a DBSession instance
-DBSession = sessionmaker(bind=engine)
-session = DBSession()
+#DBSession = sessionmaker(bind=engine)
+session = SessionLocal() #DBSession()
+
+init_db()
 
 # Clear existing data from tables
 session.query(Step).delete()
-#session.query(Event).delete()
-#session.query(Group).delete()
-#session.query(Record).delete()
+session.query(Event).delete()
+session.query(Group).delete()
+session.query(Record).delete()
 session.commit()#
 
 # Create steps
@@ -39,34 +42,40 @@ session.add(raw)
 session.add(proc)
 session.commit()
 
-# #get events 
-# path = "C:/Users/g_gos/records/raw" #f'/var/www/html/records/raw/'
-# if os.path.isdir(path): 
-#     rawEvents = get_sub_dirs(path)
-#     print('raw events',rawEvents)
-# else:
-#     print('error raw dir does not exist')
+#get events 
+path = "C:/Users/g_gos/records/raw" #f'/var/www/html/records/raw/'
+if os.path.isdir(path): 
+    rawEvents = get_sub_dirs(path)
+    print('raw events',rawEvents)
+else:
+    print('error raw dir does not exist')
 
 
-# path = "C:/Users/g_gos/records/proc" #f'/var/www/html/records/proc/'
-# if os.path.isdir(path): 
-#     procEvents = get_sub_dirs(path)
-#     print('proc events',procEvents)
-# else:
-#     print('error proc dir does not exist')
+path = "C:/Users/g_gos/records/proc" #f'/var/www/html/records/proc/'
+if os.path.isdir(path): 
+    procEvents = get_sub_dirs(path)
+    print('proc events',procEvents)
+else:
+    print('error proc dir does not exist')
 
 
-# # Create and add envents to step
+# Create and add envents to step
 
-# for eventName in rawEvents:
-#     event = Event(id=eventName)
-#     session.add(event)
+eid = 1
+for eventName in rawEvents:
+    event = Event(id = eid,name=eventName, step_id = raw.id)
+    print('event',event)
+    session.add(event)
+    eid = eid+1
 
-# for eventName in procEvents:
-#     event = Event(id=eventName)
-#     session.add(event)
+session.commit()
 
-# session.commit()
+for eventName in procEvents:
+    event = Event(id = eid, name=eventName, step_id = proc.id)
+    session.add(event)
+    eid = eid+1
+
+session.commit()
 
 # #get groups
 # rawGroups = {}
