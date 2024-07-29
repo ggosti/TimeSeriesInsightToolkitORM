@@ -29,5 +29,6 @@ class Record(Base):
     __tablename__ = 'records'
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
+    version = Column(String, nullable=True)
     group_id = Column(Integer, ForeignKey('groups.id'), nullable=False)
     group = relationship('Group', back_populates='records')

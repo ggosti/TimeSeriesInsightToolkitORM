@@ -75,24 +75,29 @@ paths:
 #             application/json:
 #               schema:
 #                 $ref: '#/components/schemas/Event'
-#   /events/{event_id}/groups:
-#     get:
-#       operationId: views.get_event_groups
-#       parameters:
-#         - name: event_id
-#           in: path
-#           required: true
-#           schema:
-#             type: integer
-#       responses:
-#         '200':
-#           description: A list of groups for an event
-#           content:
-#             application/json:
-#               schema:
-#                 type: array
-#                 items:
-#                   $ref: '#/components/schemas/Group'
+  /steps/{step_name}/events/{event_name}/groups:
+    get:
+      operationId: views.get_event_groups
+      parameters:
+        - name: step_name
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: event_name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A list of groups for an event
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Group'
 #     post:
 #       operationId: views.create_group
 #       parameters:
@@ -114,24 +119,34 @@ paths:
 #             application/json:
 #               schema:
 #                 $ref: '#/components/schemas/Group'
-#   /groups/{group_id}/records:
-#     get:
-#       operationId: views.get_group_records
-#       parameters:
-#         - name: group_id
-#           in: path
-#           required: true
-#           schema:
-#             type: integer
-#       responses:
-#         '200':
-#           description: A list of records for a group
-#           content:
-#             application/json:
-#               schema:
-#                 type: array
-#                 items:
-#                   $ref: '#/components/schemas/Record'
+  /steps/{step_name}/events/{event_name}/groups/{group_name}/records:
+    get:
+      operationId: views.get_group_records
+      parameters:
+        - name: step_name
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: event_name
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: group_name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A list of records for a group
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Record'
 #     post:
 #       operationId: views.create_record
 #       parameters:
@@ -189,16 +204,18 @@ components:
           type: string
         event_id:
           type: integer
-#         records:
-#           type: array
-#           items:
-#             $ref: '#/components/schemas/Record'
-#     Record:
-#       type: object
-#       properties:
-#         id:
-#           type: integer
-#         name:
-#           type: string
-#         group_id:
-#           type: integer
+        records:
+          type: array
+          items:
+            $ref: '#/components/schemas/Record'
+    Record:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        version:
+          type: string
+        group_id:
+          type: integer

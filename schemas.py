@@ -3,6 +3,7 @@ from marshmallow_sqlalchemy import SQLAlchemyAutoSchema, auto_field
 from models import Step, Event, Group, Record
 
 class RecordSchema(SQLAlchemyAutoSchema):
+    
     class Meta:
         model = Record
         load_instance = True

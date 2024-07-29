@@ -22,12 +22,32 @@ my_project/
 ```
 
 ## Install dependencies
+Make enviroment
+```
+python -m venv venv
+```
+Install requirements
+```
+pip install flask==2.2.2 "connexion[swagger-ui]==2.14.1" sqlalchemy marshmallow marshmallow-sqlalchemy pandas
+```
 
 ```
 pip install -r requirements.txt
 ```
 
+
+
 ## Running the application
+Activate enviroment
+```sh
+venv\Scripts\activate
+```
+populate database
+```sh
+python populate_db.py
+```
+
+run server app
 ```sh
 python app.py
 ```
