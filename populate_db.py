@@ -206,8 +206,8 @@ print('--Records--')
 print(df_record)
 print('---------')
 
-steps_schema_dump = steps_schema.dump(steps)
-print('steps dump', steps_schema_dump)
+#steps_schema_dump = steps_schema.dump(steps)
+#print('steps dump', steps_schema_dump)
 
 print("Database populated successfully!")
 

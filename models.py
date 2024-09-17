@@ -32,3 +32,31 @@ class Record(Base):
     version = Column(String, nullable=True)
     group_id = Column(Integer, ForeignKey('groups.id'), nullable=False)
     group = relationship('Group', back_populates='records')
+
+class Agregate(Base):
+    __tablename__ = 'agregate'
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
+    version = Column(String, nullable=True)
+    group_id = Column(Integer, ForeignKey('groups.id'), nullable=False)
+    group = relationship('Group', back_populates='agregate')
+    records = relationship('Record', back_populates='agregate')
+
+class Aggregate(Base):
+    __tablename__ = 'aggregates'
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
+    version = Column(String, nullable=True)
+
+    group_id = Column(Integer, ForeignKey('groups.id'), nullable=False)
+    group = relationship('Group', back_populates='aggregates')
+    
+    # Many-to-many relationship with Record
+    records = relationship('Record', secondary=aggregate_records, back_populates='aggregates')
+
+# Association table for Aggregate <-> Record
+aggregate_records = Table(
+    'aggregate_records', Base.metadata,
+    Column('aggregate_id', Integer, ForeignKey('aggregates.id')),
+    Column('record_id', Integer, ForeignKey('records.id'))
+)
