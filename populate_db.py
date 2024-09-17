@@ -28,6 +28,8 @@ def get_sub_csvs(path):
     return csvs
 
 
+recordsDirs = 'C:/Users/g_gos/records/' #'/var/www/html/records/' #'C:/Users/g_gos/records/'
+
 # Replace 'sqlite:///your_database.db' with your actual database connection string
 #DATABASE_URL = "sqlite:///data/data.db"
 
@@ -80,7 +82,7 @@ eid = 1
 for sDic in steps_schema_dump:
     sid = sDic['id']
     sname = sDic['name']
-    path = f'C:/Users/g_gos/records/{sname}'
+    path = recordsDirs + sname #f'C:/Users/g_gos/records/{sname}'
     print('path',path)
     if os.path.isdir(path):
         eventsList = get_sub_dirs(path)
@@ -124,7 +126,7 @@ for sDic in steps_schema_dump:
     for eDic in eDics:
         eid = eDic['id']
         ename = eDic['name']
-        path = f'C:/Users/g_gos/records/{sname}/{ename}'
+        path = recordsDirs + sname + '/' + ename #f'C:/Users/g_gos/records/{sname}/{ename}'
         print(path)
         if os.path.isdir(path):
             gorupList = get_sub_dirs(path)
@@ -166,7 +168,7 @@ for sDic in steps_schema_dump:
         for gDic in gDics:
             gid = gDic['id']
             gname = gDic['name']
-            path = f'C:/Users/g_gos/records/{sname}/{ename}/{gname}'
+            path =  recordsDirs + sname + '/' + ename + '/' + gname # f'C:/Users/g_gos/records/{sname}/{ename}/{gname}'
             print(path)
             if os.path.isdir(path):
                 recordList = get_sub_csvs(path)

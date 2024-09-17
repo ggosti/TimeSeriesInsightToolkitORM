@@ -22,4 +22,4 @@ if __name__ == '__main__':
     # Initialize the database
     init_db()
     # Run the application
-    app.run(port=8080, debug=True)
+    app.run(port=8082, debug=True)
