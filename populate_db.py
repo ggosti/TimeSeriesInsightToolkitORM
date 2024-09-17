@@ -28,7 +28,7 @@ def get_sub_csvs(path):
     return csvs
 
 
-recordsDirs = 'C:/Users/g_gos/records/' #'/var/www/html/records/' #'C:/Users/g_gos/records/'
+recordsDirs = '/var/www/html/records/'  #'/var/www/html/records/' #'C:/Users/g_gos/records/'
 
 # Replace 'sqlite:///your_database.db' with your actual database connection string
 #DATABASE_URL = "sqlite:///data/data.db"
