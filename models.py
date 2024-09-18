@@ -73,6 +73,43 @@ class Event(Base):
     groups = relationship('Group', back_populates='event')
 
 class Group(Base):
+    """
+    Group model for managing groups of records and aggregates from events.
+
+    >>> engine = create_engine('sqlite:///:memory:')
+    >>> Base.metadata.create_all(engine)
+    >>> Session = sessionmaker(bind=engine)
+    >>> session = Session()
+
+    >>> step = Step(id=1, name="Test Step")
+    >>> session.add(step)
+    >>> session.commit()
+
+    >>> event = Event(id=1, name="Test Event", step_id=step.id)
+    >>> session.add(event)
+    >>> session.commit()
+
+    >>> group1 = Group(id=1, name="Test Group 1", event_id=event.id)
+    >>> session.add(group1)
+    >>> group2 = Group(id=2, name="Test Group 2", event_id=event.id)
+    >>> session.add(group2)
+    >>> session.commit()
+
+    >>> event.name
+    'Test Event'
+
+    >>> group1.name
+    'Test Group 1'
+
+    >>> group2.name
+    'Test Group 2'
+
+    >>> session.query(Group).first().name
+    'Test Group 1'
+    
+    >>> session.query(Group).first().event_id
+    1
+    """
     __tablename__ = 'groups'
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
@@ -82,6 +119,49 @@ class Group(Base):
     aggregates = relationship('Aggregate', back_populates='group')
 
 class Record(Base):
+    """
+    Group model for managing groups of records and aggregates from events.
+
+    >>> engine = create_engine('sqlite:///:memory:')
+    >>> Base.metadata.create_all(engine)
+    >>> Session = sessionmaker(bind=engine)
+    >>> session = Session()
+
+    >>> step = Step(id=1, name="Test Step")
+    >>> session.add(step)
+    >>> session.commit()
+
+    >>> event = Event(id=1, name="Test Event", step_id=step.id)
+    >>> session.add(event)
+    >>> session.commit()
+
+    >>> group = Group(id=1, name="Test Group", event_id=event.id)
+    >>> session.add(group)
+    >>> session.commit()
+    
+    >>> record = Record(id=1, name="Test Record", group_id=group.id)
+    >>> session.add(record)
+    >>> session.commit()
+
+    >>> event.name
+    'Test Event'
+
+    >>> group.name
+    'Test Group'
+
+    >>> session.query(Group).first().name
+    'Test Group'
+    
+    >>> session.query(Record).first().name
+    'Test Record'
+    >>> session.query(Record).first().id
+    1
+    
+    >>> session.query(Record).first().group_id
+    1
+    
+    
+    """
     __tablename__ = 'records'
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
@@ -94,6 +174,43 @@ class Record(Base):
 
 
 class Aggregate(Base):
+    """
+    Aggregate model for managing aggregates of records from groups and events.
+
+    >>> engine = create_engine('sqlite:///:memory:')
+    >>> Base.metadata.create_all(engine)
+    >>> Session = sessionmaker(bind=engine)
+    >>> session = Session()
+    
+    >>> step = Step(id=1, name="Test Step")
+    >>> session.add(step)
+    >>> session.commit()
+
+    >>> event = Event(id=1, name="Test Event", step_id=step.id)
+    >>> session.add(event)
+    >>> session.commit()
+
+    >>> group = Group(id=1, name="Test Group", event_id=event.id)
+    >>> session.add(group)
+    >>> session.commit()
+
+    >>> record1 = Record(id=1, name="Record 1", group_id=group.id)
+    >>> record2 = Record(id=2, name="Record 2", group_id=group.id)
+    >>> record3 = Record(id=3, name="Record 3", group_id=group.id)
+    >>> session.add_all([record1, record2, record3])
+    >>> session.commit()
+
+    >>> aggregate = Aggregate(id=1,name="Test Aggregate", group_id=group.id, records=[record1, record3])
+    >>> session.add(aggregate)
+    >>> session.commit()
+
+    >>> [r.id for r in session.query(Aggregate).first().records]
+    [1, 3]
+
+    >>> len(session.query(Aggregate).first().records)
+    2
+    """
+    
     __tablename__ = 'aggregates'
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
