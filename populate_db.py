@@ -1,25 +1,27 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from models import Base, Step, Event, Group, Record
+from models import Base, Step, Event, Group, Record, Aggregate
 import os
 from db import SessionLocal,init_db
 import pandas as pd
+import json
 
 
 from schemas import StepSchema, EventSchema, GroupSchema, RecordSchema
 
-step_schema = StepSchema()
+#step_schema = StepSchema()
 steps_schema = StepSchema(many=True)
-event_schema = EventSchema()
+#event_schema = EventSchema()
 events_schema = EventSchema(many=True)
-group_schema = GroupSchema()
+#group_schema = GroupSchema()
 groups_schema = GroupSchema(many=True)
-record_schema = RecordSchema()
-records_schema = RecordSchema(many=True)
+#record_schema = RecordSchema()
+#records_schema = RecordSchema(many=True)
 
 def get_sub_dirs(path):
     #print('path',path,os.listdir(path))
     subdirs = [x for x in os.listdir(path) if os.path.isdir(path+'/'+x)] #os.walk(path)]
+    subdirs.sort()
     return subdirs
 
 def get_sub_csvs(path):
@@ -27,8 +29,14 @@ def get_sub_csvs(path):
     csvs = [x for x in os.listdir(path) if '.csv' in x] #os.walk(path)]
     return csvs
 
+def get_sub_json(path):
+    print('path',path,os.listdir(path))
+    jsons = [x for x in os.listdir(path) if '.json' in x] #os.walk(path)]
+    print(jsons)
+    return jsons
 
-recordsDirs = '/var/www/html/records/'  #'/var/www/html/records/' #'C:/Users/g_gos/records/'
+
+recordsDirs = 'test/records/'  #'/var/www/html/records/' #'C:/Users/g_gos/records/'
 
 # Replace 'sqlite:///your_database.db' with your actual database connection string
 #DATABASE_URL = "sqlite:///data/data.db"
@@ -50,6 +58,7 @@ session.query(Step).delete()
 session.query(Event).delete()
 session.query(Group).delete()
 session.query(Record).delete()
+session.query(Aggregate).delete()
 session.commit()#
 
 # Create steps
@@ -68,13 +77,19 @@ steps = session.query(Step).all()
 step_data = [{'id': step.id, 'name': step.name} for step in steps]
 df_steps = pd.DataFrame(step_data)
 
+
 # Print steps DataFrame
 print('--steps--')
 print(df_steps)
 print('---------')
 
+
 steps_schema_dump = steps_schema.dump(steps)
-print('steps dump', steps_schema_dump)
+stepIdMap = {sDic['id']:sDic['name'] for sDic in steps_schema_dump}
+print('steps dump')
+for s in steps_schema_dump:
+    print(s)
+
 
 #get, create and add events 
 
@@ -102,7 +117,7 @@ session.commit()
 events = session.query(Event).all()
 
 # Convert to pandas DataFrame
-events_data = [{'id': event.id, 'name': event.name, 'step_id': event.step_id} for event in events]
+events_data = [{'id': event.id, 'name': event.name, 'step_id': event.step_id, 'step_name': stepIdMap[event.step_id]} for event in events]
 df_events = pd.DataFrame(events_data)
 
 # Print DataFrame
@@ -110,34 +125,41 @@ print('--Events--')
 print(df_events)
 print('---------')
 
-steps_schema_dump = steps_schema.dump(steps)
-print('steps dump', steps_schema_dump)
+
+#steps_schema_dump = steps_schema.dump(steps)
+print('steps dump')
+for s in steps_schema_dump:
+    print(s)
 
 events_schema_dump = events_schema.dump(events)
-print('events dump', events_schema_dump)
+eventIdMap = {eDic['id']:eDic['name'] for eDic in events_schema_dump}
+print('events dump')
+for e in events_schema_dump:
+    print(e)
+
+
 
 #get, create and add groups
 
+
+
 gid = 1
-for sDic in steps_schema_dump:
-    sid = sDic['id']
-    sname = sDic['name']
-    eDics = sDic['events']
-    for eDic in eDics:
-        eid = eDic['id']
-        ename = eDic['name']
-        path = recordsDirs + sname + '/' + ename #f'C:/Users/g_gos/records/{sname}/{ename}'
-        print(path)
-        if os.path.isdir(path):
-            gorupList = get_sub_dirs(path)
-            print('groups',gorupList)
-            for groupName in gorupList:
-                group = Group(id=gid, name=groupName, event_id=eid)
-                print('created group',gid,groupName)
-                session.add(group)
-                gid = gid+1
-        else:
-            print('error dir does not exist')
+for eDic in events_schema_dump:
+    eid = eDic['id']
+    ename = eDic['name']
+    sname = stepIdMap[eDic['step_id']]
+    path = recordsDirs + sname + '/' + ename #f'C:/Users/g_gos/records/{sname}/{ename}'
+    print(path)
+    if os.path.isdir(path):
+        gorupList = get_sub_dirs(path)
+        print('groups',gorupList)
+        for groupName in gorupList:
+            group = Group(id=gid, name=groupName, event_id=eid)
+            print('created group',gid,groupName)
+            session.add(group)
+            gid = gid+1
+    else:
+        print('error dir does not exist')
 
 session.commit()
 
@@ -145,7 +167,7 @@ session.commit()
 groups = session.query(Group).all()
 
 # Convert to pandas DataFrame
-group_data = [{'id': group.id, 'name': group.name, 'event_id': group.event_id} for group in groups]
+group_data = [{'id': group.id, 'name': group.name, 'event_id': group.event_id, 'event_name': eventIdMap[group.event_id]} for group in groups]
 df_group = pd.DataFrame(group_data)
 
 # Print DataFrame
@@ -153,44 +175,56 @@ print('--Groups--')
 print(df_group)
 print('---------')
 
-steps_schema_dump = steps_schema.dump(steps)
-print('steps dump', steps_schema_dump)
+#steps_schema_dump = steps_schema.dump(steps)
+print('steps dump')
+for s in steps_schema_dump:
+    print(s)
+
+#events_schema_dump = events_schema.dump(events)
+print('events dump')
+for e in events_schema_dump:
+    print(e)
+    
+groups_schema_dump = groups_schema.dump(groups)
+print('group dump')
+for g in groups_schema_dump:
+    print(g)
+
 
 rid = 1
-for sDic in steps_schema_dump:
-    sid = sDic['id']
-    sname = sDic['name']
-    eDics = sDic['events']
-    for eDic in eDics:
-        eid = eDic['id']
-        ename = eDic['name']
-        gDics = eDic['groups']
-        for gDic in gDics:
-            gid = gDic['id']
-            gname = gDic['name']
-            path =  recordsDirs + sname + '/' + ename + '/' + gname # f'C:/Users/g_gos/records/{sname}/{ename}/{gname}'
-            print(path)
-            if os.path.isdir(path):
-                recordList = get_sub_csvs(path)
-                if len(recordList) > 0:
-                    print('record',recordList)
-                    for recordName in recordList:
-                        record = Record(id=rid, name=recordName, group_id=gid)
-                        print('created',rid,recordName)
-                        session.add(record)
-                        rid = rid+1
-                else:
-                    verList = get_sub_dirs(path)
-                    for ver in verList:
-                        print('ver',ver)
-                        recordList = get_sub_csvs(path+'/'+ver)
-                        for recordName in recordList:
-                            record = Record(id=rid, name=recordName, version = ver, group_id=gid)
-                            print('created',rid,recordName)
-                            session.add(record)
-                            rid = rid+1
-            else:
-                print('error dir does not exist')
+for gDic in groups_schema_dump:
+    gid = gDic['id']
+    gname = gDic['name']
+    eid = gDic['event_id']
+    ename = eventIdMap[eid]
+    sid = df_events[df_events['id']==eid]['step_id'].values[0]
+    print('sid',sid)
+    sname = stepIdMap[sid]
+
+    path =  recordsDirs + sname + '/' + ename + '/' + gname # f'C:/Users/g_gos/records/{sname}/{ename}/{gname}'
+    print(path)
+    if os.path.isdir(path):
+        recordList = get_sub_csvs(path)
+        if len(recordList) > 0:
+            print('record',recordList)
+            for recordName in recordList:
+                record = Record(id=rid, name=recordName.split('.')[0], group_id=gid)
+                print('created',rid,recordName.split('.')[0])
+                print(record)
+                session.add(record)
+                rid = rid+1
+        else:
+            verList = get_sub_dirs(path)
+            for ver in verList:
+                print('ver',ver)
+                recordList = get_sub_csvs(path+'/'+ver)
+                for recordName in recordList:
+                    record = Record(id=rid, name=recordName.split('.')[0], version = ver, group_id=gid)
+                    print('created',rid,recordName.split('.')[0])
+                    session.add(record)
+                    rid = rid+1
+    else:
+        print('error dir does not exist')
 
 session.commit()
 
@@ -198,7 +232,7 @@ session.commit()
 records = session.query(Record).all()
 
 # Convert to pandas DataFrame
-record_data = [{'id': record.id, 'name': record.name, 'group_id': record.group_id} for record in records]
+record_data = [{'id': record.id, 'name': record.name, 'version':record.version, 'group_id': record.group_id} for record in records]
 df_record = pd.DataFrame(record_data)
 
 # Print DataFrame
@@ -209,7 +243,57 @@ print('---------')
 #steps_schema_dump = steps_schema.dump(steps)
 #print('steps dump', steps_schema_dump)
 
+
+aid = 1
+for gDic in groups_schema_dump:
+    gid = gDic['id']
+    gname = gDic['name']
+    eid = gDic['event_id']
+    ename = eventIdMap[eid]
+    sid = df_events[df_events['id']==eid]['step_id'].values[0]
+    print('sid',sid)
+    sname = stepIdMap[sid]
+
+    path =  recordsDirs + sname + '/' + ename + '/' + gname # f'C:/Users/g_gos/records/{sname}/{ename}/{gname}'
+    print(path)
+    if os.path.isdir(path):
+        agregateList = get_sub_json(path)
+        if len(agregateList) > 0:
+            print('agregate',agregateList)
+            for agregateName in agregateList:
+                with open(path+'/'+agregateName) as json_file:
+                    dicAgg = json.load(json_file)
+                recordsList = dicAgg['records']
+                print('dicAgg',recordsList,get_sub_csvs(path+'/preprocessed-VR-sessions'))
+                recordsClList = []
+                for recordName in recordsList:
+                    print('recordName',recordName)
+                    print('records in table ',[r.name for r in session.query(Record).filter_by(name = recordName, group_id=gid).all()])
+                    record = session.query(Record).filter_by(name = recordName, group_id=gid).first()
+                    print('record',record)
+                    recordsClList.append(record)
+                aggregate = Aggregate(id=aid, name=agregateName, records=recordsClList, group_id=gid) #, records= recordsStr bisogna aggiungere i records
+                print('created',aid, agregateName)
+                print(aggregate)
+                session.add(aggregate)
+                aid = aid+1
+
+session.commit()
+
+#print events table
+aggregates = session.query(Aggregate).all()
+
+# Convert to pandas DataFrame
+aggregates_data = [{'id': aggregate.id, 'name': aggregate.name, 'records':aggregate.records, 'group_id': aggregate.group_id} for aggregate in aggregates]
+df_aggregate = pd.DataFrame(aggregates_data)
+
+# Print DataFrame
+print('--Aggregate--')
+print(df_aggregate)
+print('---------')
+
 print("Database populated successfully!")
 
 # Close the session
 session.close()
+
