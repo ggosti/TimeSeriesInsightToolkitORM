@@ -264,7 +264,9 @@ for gDic in groups_schema_dump:
                 print('agregateName',agregateName)
                 with open(path+'/'+agregateName) as json_file:
                     dicAgg = json.load(json_file)
-                recordsList = dicAgg['records']
+                recordsList = []
+                if 'records' in dicAgg:
+                    recordsList = dicAgg['records']
                 print('dicAgg',recordsList,get_sub_csvs(path+'/preprocessed-VR-sessions'))
                 recordsClList = []
                 for recordName in recordsList:
