@@ -36,7 +36,7 @@ def get_sub_json(path):
     return jsons
 
 
-recordsDirs = 'test/records/'  #'/var/www/html/records/' #'C:/Users/g_gos/records/'
+recordsDirs = '/var/www/html/records/' #'test/records/'  #'/var/www/html/records/' #'C:/Users/g_gos/records/'
 
 # Replace 'sqlite:///your_database.db' with your actual database connection string
 #DATABASE_URL = "sqlite:///data/data.db"
@@ -267,19 +267,20 @@ for gDic in groups_schema_dump:
                 recordsList = []
                 if 'records' in dicAgg:
                     recordsList = dicAgg['records']
-                print('dicAgg',recordsList,get_sub_csvs(path+'/preprocessed-VR-sessions'))
-                recordsClList = []
-                for recordName in recordsList:
-                    print('recordName',recordName)
-                    print('records in table ',[r.name for r in session.query(Record).filter_by(name = recordName, group_id=gid).all()])
-                    record = session.query(Record).filter_by(name = recordName, group_id=gid).first()
-                    print('record',record)
-                    recordsClList.append(record)
-                aggregate = Aggregate(id=aid, name=agregateName, records=recordsClList, group_id=gid) #, records= recordsStr bisogna aggiungere i records
-                print('created',aid, agregateName)
-                print(aggregate)
-                session.add(aggregate)
-                aid = aid+1
+                    print('dicAgg',recordsList,get_sub_csvs(path+'/preprocessed-VR-sessions'))
+                    recordsClList = []
+                    for recordName in recordsList:
+                        print('recordName',recordName)
+                        print('records in table ',[r.name for r in session.query(Record).filter_by(name = recordName, group_id=gid).all()])
+                        record = session.query(Record).filter_by(name = recordName, group_id=gid).first()
+                        print('record',record)
+                        recordsClList.append(record)
+                    aggregate = Aggregate(id=aid, name=agregateName, records=recordsClList, group_id=gid) #, records= recordsStr bisogna aggiungere i records
+                    print('created',aid, agregateName)
+                    print(aggregate)
+                    session.add(aggregate)
+                    session.commit()
+                    aid = aid+1
 
 session.commit()
 
