@@ -259,8 +259,9 @@ for gDic in groups_schema_dump:
     if os.path.isdir(path):
         agregateList = get_sub_json(path)
         if len(agregateList) > 0:
-            print('agregate',agregateList)
+            #print('agregate',agregateList)
             for agregateName in agregateList:
+                print('agregateName',agregateName)
                 with open(path+'/'+agregateName) as json_file:
                     dicAgg = json.load(json_file)
                 recordsList = dicAgg['records']
