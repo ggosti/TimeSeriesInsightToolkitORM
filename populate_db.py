@@ -166,7 +166,7 @@ stepsList = getSteps(recordsDirs)
 eventsList,eventsPathList = getEvents(recordsDirs,stepsList)
 groupsList,groupsPathList = getGroups(eventsPathList,eventsList)
 recodsList, recordsPathList, recordsVerList = getRecords(groupsPathList,groupsList)
-aggeregatesList, aggeregatesPathList, aggeregatesVerList, aggeregatesRegVerList = getAggregates(groupsPathList,groupsList,recodsList,recordsVerList)
+aggeregatesList, aggeregatesPathList, aggeregatesVerList, aggeregatesRegVerList = getAggregates(groupsPathList,groupsList,recodsList)
 
 print('print steps')
 for s in stepsList:
