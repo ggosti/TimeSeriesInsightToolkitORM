@@ -61,6 +61,90 @@ session.query(Record).delete()
 session.query(Aggregate).delete()
 session.commit()#
 
+def getSteps(path):
+    return ['raw','proc'] #get_sub_dirs(path)
+
+def getEvents(path,stepsList):
+    eventsList = []
+    eventsPathList = []
+    for s in stepsList:
+        tempPath = path+s+'/'
+        tempEventList = get_sub_dirs(tempPath)
+        for e in tempEventList:
+            eventsList.append(e)
+            eventsPathList.append(tempPath)
+    return eventsList,eventsPathList
+
+def getGroups(paths,eventsList):
+    groupsList = []
+    groupsPathList = []
+    for p,e in zip(paths,eventsList):
+        tempPath = p+e+'/'
+        tempGroupList = get_sub_dirs(tempPath)
+        for g in tempGroupList:
+            groupsList.append(g)
+            groupsPathList.append(tempPath)
+    return groupsList,groupsPathList
+
+def getRecords(paths,groupsList):
+    recodsList = []
+    recordsListPath = []
+    recordsListVer = []
+    for p,s in zip(paths,groupsList):
+        tempPath = p+s+'/'
+        if os.path.isdir(tempPath):
+            tempRecordsList = get_sub_csvs(tempPath)
+            if len(tempRecordsList) > 0:
+                print('record',tempRecordsList)
+                for recordName in tempRecordsList:
+                    recodsList.append(recordName)
+                    recordsListPath.append(tempPath)
+                    recordsListVer.append(None)
+                    #record = Record(id=rid, name=recordName.split('.')[0], group_id=gid)
+                    #print('created',rid,recordName.split('.')[0])
+                    #print(record)
+                    #session.add(record)
+                    #rid = rid+1
+            else:
+                versList = get_sub_dirs(tempPath)
+                for ver in versList:
+                    print('ver',ver)
+                    tempRecordsList = get_sub_csvs(tempPath+'/'+ver)
+                    for recordName in tempRecordsList:
+                        #record = Record(id=rid, name=recordName.split('.')[0], version = ver, group_id=gid)
+                        #print('created',rid,recordName.split('.')[0])
+                        #session.add(record)
+                        #rid = rid+1
+                        recodsList.append(recordName)
+                        recordsListPath.append(tempPath)
+                        recordsListVer.append(ver)
+        else:
+            print('error dir does not exist')
+    return recodsList, recordsListPath, recordsListVer
+
+stepsList = getSteps(recordsDirs)
+eventsList,eventsPathList = getEvents(recordsDirs,stepsList)
+groupsList,groupsPathList = getGroups(eventsPathList,eventsList)
+recodsList, recordsPathList, recordsListVer = getRecords(groupsPathList,groupsList)
+
+print('print steps')
+for s in stepsList:
+    print('- ', s , ' /')
+
+print('print events')
+for e,p in zip(eventsList,eventsPathList ):
+    print('- ', e ,' ',p,' /')
+
+print('print groups')
+for g,p in zip(groupsList,groupsPathList ):
+    print('- ', g ,' ',p,' /')
+
+print('print records')
+for r,p,v in zip( recodsList, recordsPathList, recordsListVer ):
+    print('- ', r ,' ',p,' ',v,' /')
+    
+
+"""
 # Create steps
 raw = Step(id = 1, name='raw')
 proc = Step(id = 2, name='proc')
@@ -301,3 +385,4 @@ print("Database populated successfully!")
 # Close the session
 session.close()
 
+"""
