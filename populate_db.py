@@ -36,7 +36,7 @@ def get_sub_json(path):
     return jsons
 
 
-recordsDirs = '/var/www/html/records/' #'test/records/'  #'/var/www/html/records/' #'C:/Users/g_gos/records/'
+recordsDirs = 'test/records/'  #'/var/www/html/records/' #'C:/Users/g_gos/records/'
 
 # Replace 'sqlite:///your_database.db' with your actual database connection string
 #DATABASE_URL = "sqlite:///data/data.db"
@@ -86,46 +86,87 @@ def getGroups(paths,eventsList):
             groupsPathList.append(tempPath)
     return groupsList,groupsPathList
 
+def addTemRecordsToLists(tempRecordsList,tempPath,recodsList,recordsPathList,recordsVerList):
+    for recordName in tempRecordsList:
+        recodsList.append(recordName)
+        recordsPathList.append(tempPath)
+        recordsVerList.append(None)
+    return recodsList,recordsPathList,recordsVerList
+
 def getRecords(paths,groupsList):
     recodsList = []
-    recordsListPath = []
-    recordsListVer = []
-    for p,s in zip(paths,groupsList):
-        tempPath = p+s+'/'
+    recordsPathList = []
+    recordsVerList = []
+    for p,g in zip(paths,groupsList):
+        tempPath = p+g+'/'
         if os.path.isdir(tempPath):
             tempRecordsList = get_sub_csvs(tempPath)
             if len(tempRecordsList) > 0:
-                print('record',tempRecordsList)
-                for recordName in tempRecordsList:
-                    recodsList.append(recordName)
-                    recordsListPath.append(tempPath)
-                    recordsListVer.append(None)
-                    #record = Record(id=rid, name=recordName.split('.')[0], group_id=gid)
-                    #print('created',rid,recordName.split('.')[0])
-                    #print(record)
-                    #session.add(record)
-                    #rid = rid+1
+                #print('record',tempRecordsList)
+                recodsList,recordsPathList,recordsVerList =  addTemRecordsToLists(tempRecordsList,tempPath,
+                                                                                  recodsList,recordsPathList,recordsVerList)
             else:
                 versList = get_sub_dirs(tempPath)
                 for ver in versList:
-                    print('ver',ver)
+                    #print('ver',ver)
                     tempRecordsList = get_sub_csvs(tempPath+'/'+ver)
-                    for recordName in tempRecordsList:
-                        #record = Record(id=rid, name=recordName.split('.')[0], version = ver, group_id=gid)
-                        #print('created',rid,recordName.split('.')[0])
-                        #session.add(record)
-                        #rid = rid+1
-                        recodsList.append(recordName)
-                        recordsListPath.append(tempPath)
-                        recordsListVer.append(ver)
+                    recodsList,recordsPathList,recordsVerList =  addTemRecordsToLists(tempRecordsList,tempPath,
+                                                                                      recodsList,recordsPathList,recordsVerList)
         else:
             print('error dir does not exist')
-    return recodsList, recordsListPath, recordsListVer
+    return recodsList, recordsPathList, recordsVerList
+
+
+def getVersionFromRecordFolder(recodsFolder):
+    recordsVer = recodsFolder.split("/")[-1]
+    if len(recordsVer) == 0:
+        recordsVer = recodsFolder.split("/")[-2]    
+    return recordsVer
+
+
+def addTemAggregatesToLists(tempAggList,tempPath, aggeregatesList,aggeregatesPathList,aggeregatesVerList,aggeregatesRegVerList):
+    for aggName in tempAggList:
+        with open(tempPath+'/'+aggName) as json_file:
+            dicAgg = json.load(json_file)
+        recordsList = None
+        if 'records' in dicAgg:
+            recordsList = dicAgg['records']
+            recordsVer = getVersionFromRecordFolder(dicAgg["records folder"])
+            print('recordsVer', recordsVer)
+        aggeregatesList.append(aggName)
+        aggeregatesPathList.append(tempPath)
+        aggeregatesVerList.append(None)
+        aggeregatesRegVerList.append(recordsVer)
+    print('aggeregatesRegVerList',aggeregatesRegVerList)
+    return aggeregatesList,aggeregatesPathList,aggeregatesVerList,aggeregatesRegVerList
+
+
+def getAggregates(paths,groupsList,recodsList):
+    aggeregatesList = []
+    aggeregatesPathList = []
+    aggeregatesVerList = []
+    aggeregatesRegVerList = []
+    for p,g in zip(paths,groupsList):
+        tempPath = p+g+'/'
+        if os.path.isdir(tempPath):
+            tempAggList = get_sub_json(tempPath)
+            if len(tempAggList) > 0:
+                [aggeregatesList,
+                aggeregatesPathList,
+                aggeregatesVerList,
+                aggeregatesRegVerList] = addTemAggregatesToLists(tempAggList,tempPath,
+                                                                aggeregatesList,aggeregatesPathList,aggeregatesVerList,aggeregatesRegVerList)
+            else:
+                print('error dir does not exist')
+        else:
+            print('error dir does not exist')
+    return aggeregatesList, aggeregatesPathList, aggeregatesVerList, aggeregatesRegVerList
 
 stepsList = getSteps(recordsDirs)
 eventsList,eventsPathList = getEvents(recordsDirs,stepsList)
 groupsList,groupsPathList = getGroups(eventsPathList,eventsList)
-recodsList, recordsPathList, recordsListVer = getRecords(groupsPathList,groupsList)
+recodsList, recordsPathList, recordsVerList = getRecords(groupsPathList,groupsList)
+aggeregatesList, aggeregatesPathList, aggeregatesVerList, aggeregatesRegVerList = getAggregates(groupsPathList,groupsList,recodsList,recordsVerList)
 
 print('print steps')
 for s in stepsList:
@@ -140,8 +181,12 @@ for g,p in zip(groupsList,groupsPathList ):
     print('- ', g ,' ',p,' /')
 
 print('print records')
-for r,p,v in zip( recodsList, recordsPathList, recordsListVer ):
+for r,p,v in zip( recodsList, recordsPathList, recordsVerList ):
     print('- ', r ,' ',p,' ',v,' /')
+
+print('print aggreagare')
+for a,p,regVer in zip( aggeregatesList, aggeregatesPathList, aggeregatesRegVerList ):
+    print('- ', a ,' ',p,' ',regVer,' /')
     
 
 """

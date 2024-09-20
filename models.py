@@ -215,6 +215,7 @@ class Aggregate(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
     version = Column(String, nullable=True)
+    recordsVersion = Column(String, nullable=True)
 
     group_id = Column(Integer, ForeignKey('groups.id'), nullable=False)
     group = relationship('Group', back_populates='aggregates')
