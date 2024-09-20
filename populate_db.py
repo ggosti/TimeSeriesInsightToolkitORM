@@ -36,7 +36,7 @@ def get_sub_json(path):
     return jsons
 
 
-recordsDirs = '/var/www/html/records/' #'test/records/'  #'/var/www/html/records/' #'C:/Users/g_gos/records/'
+recordsDirs = 'test/records/' #'test/records/'  #'/var/www/html/records/' #'C:/Users/g_gos/records/'
 
 # Replace 'sqlite:///your_database.db' with your actual database connection string
 #DATABASE_URL = "sqlite:///data/data.db"
@@ -86,11 +86,11 @@ def getGroups(paths,eventsList):
             groupsPathList.append(tempPath)
     return groupsList,groupsPathList
 
-def addTemRecordsToLists(tempRecordsList,tempPath,recodsList,recordsPathList,recordsVerList):
+def addTemRecordsToLists(tempRecordsList,tempPath,ver, recodsList,recordsPathList,recordsVerList):
     for recordName in tempRecordsList:
         recodsList.append(recordName)
         recordsPathList.append(tempPath)
-        recordsVerList.append(None)
+        recordsVerList.append(ver)
     return recodsList,recordsPathList,recordsVerList
 
 def getRecords(paths,groupsList):
@@ -103,14 +103,14 @@ def getRecords(paths,groupsList):
             tempRecordsList = get_sub_csvs(tempPath)
             if len(tempRecordsList) > 0:
                 #print('record',tempRecordsList)
-                recodsList,recordsPathList,recordsVerList =  addTemRecordsToLists(tempRecordsList,tempPath,
+                recodsList,recordsPathList,recordsVerList =  addTemRecordsToLists(tempRecordsList,tempPath,None,
                                                                                   recodsList,recordsPathList,recordsVerList)
             else:
                 versList = get_sub_dirs(tempPath)
                 for ver in versList:
                     #print('ver',ver)
                     tempRecordsList = get_sub_csvs(tempPath+'/'+ver)
-                    recodsList,recordsPathList,recordsVerList =  addTemRecordsToLists(tempRecordsList,tempPath,
+                    recodsList,recordsPathList,recordsVerList =  addTemRecordsToLists(tempRecordsList,tempPath,ver,
                                                                                       recodsList,recordsPathList,recordsVerList)
         else:
             print('error dir does not exist')
