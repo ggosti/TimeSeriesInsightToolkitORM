@@ -36,7 +36,7 @@ def get_sub_json(path):
     return jsons
 
 
-recordsDirs = 'test/records/' #'test/records/'  #'/var/www/html/records/' #'C:/Users/g_gos/records/'
+recordsDirs = '/var/www/html/records/' #'test/records/'  #'/var/www/html/records/' #'C:/Users/g_gos/records/'
 
 # Replace 'sqlite:///your_database.db' with your actual database connection string
 #DATABASE_URL = "sqlite:///data/data.db"
