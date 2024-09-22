@@ -222,7 +222,11 @@ def getAggregates(paths,groupsIdList,groupsList):
 def printAggregates(aggregatesDic):
     print('print aggreagare')
     for a,p,recVer, recs in zip( aggregatesDic['name'], aggregatesDic['path'], aggregatesDic['recordsVer'], aggregatesDic['records']):
-        print('- ', a ,' ',p,' ',recVer, recs[:3])
+        try:
+            print('- ', a ,' ',p,' ',recVer, recs[:3])
+        except TypeError:
+            print('- ', a ,' ',p,' ',recVer)
+            print('recs',recs)
 
 aggregatesDic = getAggregates(groupsDic['path'],groupsDic['id'],groupsDic['name'])
 printAggregates(aggregatesDic)
