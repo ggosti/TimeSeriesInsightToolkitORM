@@ -25,7 +25,7 @@ def get_sub_dirs(path):
     return subdirs
 
 def get_sub_csvs(path):
-    print('path',path,os.listdir(path))
+    #print('path',path,os.listdir(path))
     csvs = [x for x in os.listdir(path) if '.csv' in x] #os.walk(path)]
     return csvs
 
@@ -36,7 +36,8 @@ def get_sub_json(path):
     return jsons
 
 
-recordsDirs = 'test/records/' #'test/records/'  #'/var/www/html/records/' #'C:/Users/g_gos/records/'
+import config
+recordsDirs = config.path #'test/records/'  #'/var/www/html/records/' #'C:/Users/g_gos/records/'
 
 # Replace 'sqlite:///your_database.db' with your actual database connection string
 #DATABASE_URL = "sqlite:///data/data.db"
@@ -61,7 +62,9 @@ session.query(Record).delete()
 session.query(Aggregate).delete()
 session.commit()#
 
+# -----------
 # -- Steps:
+# -----------
 
 def getSteps(path):
     stepsDic = {'id':[1,2],'name':['raw','proc']}
@@ -75,7 +78,9 @@ def printSteps():
 stepsDic = getSteps(recordsDirs)
 printSteps()
 
+# -----------
 # -- Events
+# -----------
 
 def getEvents(path,stepIdList,stepsList):
     eventsDic = {'id':[], 'name':[],'path':[], 'step_id':[]}
@@ -100,64 +105,77 @@ def printEvents(eventsDic):
 eventsDic = getEvents(recordsDirs,stepsDic['id'],stepsDic['name'])
 printEvents(eventsDic)
 
+# -----------
 # -- Groups
+# -----------
 
-def getGroups(paths,eventsList):
-    groupDic = {'name':[],'path':[]}
-    for p,e in zip(paths,eventsList):
+def getGroups(paths,eventsIdList,eventsList):
+    groupsDic = {'id':[], 'name':[],'path':[], 'event_id':[]}
+    gid = 1
+    for p,eid,e in zip(paths,eventsIdList,eventsList):
         tempPath = p+e+'/'
         tempGroupList = get_sub_dirs(tempPath)
         for g in tempGroupList:
-            groupDic['name'].append(g)
-            groupDic['path'].append(tempPath)
-    return groupDic
+            groupsDic['id'].append(gid)
+            groupsDic['name'].append(g)
+            groupsDic['path'].append(tempPath)
+            groupsDic['event_id'].append(eid)
+            gid = gid + 1
+    return groupsDic
 
-def printGroups(groupDic):
+def printGroups(groupsDic):
     print('print groups')
-    for g,p in zip(groupDic['name'],groupDic['path']):
+    for g,p in zip(groupsDic['name'],groupsDic['path']):
         print('- ', g ,' ',p,' /')
 
-groupDic = getGroups(eventsDic['path'],eventsDic['name'])
-printGroups(groupDic)
+groupsDic = getGroups(eventsDic['path'],eventsDic['id'],eventsDic['name'])
+printGroups(groupsDic)
 
+# -----------
 # -- Records
+# -----------
 
-def addTemRecordsToLists(tempRecordsList,tempPath,ver, recordDic):
+def addTemRecordsToLists(tempRecordsList, tempPath, ver, gid, recordsDic):
     for recordName in tempRecordsList:
-        recordDic['name'].append(recordName)
-        recordDic['path'].append(tempPath)
-        recordDic['ver'].append(ver)
-    return recordDic
+        rid = len(recordsDic['id'])+ 1 # get the number of records id add and increment of one
+        recordsDic['id'].append(rid)
+        recordsDic['name'].append(recordName)
+        recordsDic['path'].append(tempPath)
+        recordsDic['ver'].append(ver)
+        recordsDic['group_id'].append(gid)
+    return recordsDic
 
-def getRecords(paths,groupsList):
-    recordDic = {'name':[],'path':[],'ver':[]}
-    for p,g in zip(paths,groupsList):
+def getRecords(paths,groupsIdList,groupsList):
+    recordsDic = {'id':[],'name':[],'path':[],'ver':[],'group_id':[]}
+    for p,gid,g in zip(paths,groupsIdList,groupsList):
         tempPath = p+g+'/'
         if os.path.isdir(tempPath):
             tempRecordsList = get_sub_csvs(tempPath)
             if len(tempRecordsList) > 0:
                 #print('record',tempRecordsList)
-                recordDic =  addTemRecordsToLists(tempRecordsList,tempPath,None,recordDic)
+                recordsDic =  addTemRecordsToLists(tempRecordsList,tempPath,None,gid,recordsDic)
             else:
                 versList = get_sub_dirs(tempPath)
                 for ver in versList:
                     #print('ver',ver)
                     tempRecordsList = get_sub_csvs(tempPath+'/'+ver)
-                    recordDic =  addTemRecordsToLists(tempRecordsList,tempPath,ver,recordDic)                                                    
+                    recordsDic =  addTemRecordsToLists(tempRecordsList,tempPath,ver,gid,recordsDic)                                                    
         else:
             print('error dir does not exist')
-    return recordDic
+    return recordsDic
 
 
-def printRecords(recordDic):
+def printRecords(recordsDic):
     print('print records')
-    for r,p,v in zip( recordDic['name'], recordDic['path'], recordDic['ver'] ):
+    for r,p,v in zip( recordsDic['name'], recordsDic['path'], recordsDic['ver'] ):
         print('- ', r ,' ',p,' ',v,' /')
 
-recordDic = getRecords(groupDic['path'],groupDic['name'])
-printRecords(recordDic)
+recordsDic = getRecords(groupsDic['path'],groupsDic['id'],groupsDic['name'])
+printRecords(recordsDic)
 
+# -----------
 # -- Aggregates
+# -----------
 
 def getVersionFromRecordFolder(recodsFolder):
     recordsVer = recodsFolder.split("/")[-1]
@@ -165,7 +183,7 @@ def getVersionFromRecordFolder(recodsFolder):
         recordsVer = recodsFolder.split("/")[-2]    
     return recordsVer
 
-def addTemAggregatesToLists(tempAggList,tempPath, aggregateDic):
+def addTemAggregatesToLists(tempAggList,tempPath, gid, aggregatesDic):
     for aggName in tempAggList:
         with open(tempPath+'/'+aggName) as json_file:
             dicAgg = json.load(json_file)
@@ -174,23 +192,26 @@ def addTemAggregatesToLists(tempAggList,tempPath, aggregateDic):
             recordsList = dicAgg['records']
             recordsVer = getVersionFromRecordFolder(dicAgg["records folder"])
             #print('recordsVer', recordsVer)
-        aggregateDic['name'].append(aggName)
-        aggregateDic['path'].append(tempPath)
-        aggregateDic['ver'].append(None)
-        aggregateDic['recordsVer'].append(recordsVer)
-        aggregateDic['records'].append(recordsList)
+        aid = len(aggregatesDic['id'])+ 1 # get the number of records id add and increment of one
+        aggregatesDic['id'].append(aid)
+        aggregatesDic['name'].append(aggName)
+        aggregatesDic['path'].append(tempPath)
+        aggregatesDic['ver'].append(None)
+        aggregatesDic['recordsVer'].append(recordsVer)
+        aggregatesDic['records'].append(recordsList)
+        aggregatesDic['group_id'].append(gid)
     #print('aggeregatesRegVerList',aggregateDic['recordsVer'])
-    return aggregateDic
+    return aggregatesDic
 
 
-def getAggregates(paths,groupsList):
-    aggregateDic = {'name':[],'path':[],'ver':[],'recordsVer':[],'records':[]}
-    for p,g in zip(paths,groupsList):
+def getAggregates(paths,groupsIdList,groupsList):
+    aggregateDic = {'id':[],'name':[],'path':[],'ver':[],'recordsVer':[],'records':[],'group_id':[]}
+    for p,gid,g in zip(paths,groupsIdList,groupsList):
         tempPath = p+g+'/'
         if os.path.isdir(tempPath):
             tempAggList = get_sub_json(tempPath)
             if len(tempAggList) > 0:
-                aggregateDic = addTemAggregatesToLists(tempAggList,tempPath,aggregateDic)
+                aggregateDic = addTemAggregatesToLists(tempAggList,tempPath,gid,aggregateDic)
             else:
                 print('error aggregate json does not exist')
         else:
@@ -198,15 +219,18 @@ def getAggregates(paths,groupsList):
     return aggregateDic
 
 
-def printAggregates(aggregateDic):
+def printAggregates(aggregatesDic):
     print('print aggreagare')
-    for a,p,recVer, recs in zip( aggregateDic['name'], aggregateDic['path'], aggregateDic['recordsVer'], aggregateDic['records']):
+    for a,p,recVer, recs in zip( aggregatesDic['name'], aggregatesDic['path'], aggregatesDic['recordsVer'], aggregatesDic['records']):
         print('- ', a ,' ',p,' ',recVer, recs[:3])
 
-aggregateDic = getAggregates(groupDic['path'],groupDic['name'])
-printAggregates(aggregateDic)
+aggregatesDic = getAggregates(groupsDic['path'],groupsDic['id'],groupsDic['name'])
+printAggregates(aggregatesDic)
 
+# -----------
 # Create steps
+# -----------
+
 stepsClsList = [Step(id = i, name=s) for i,s in zip(stepsDic['id'],stepsDic['name'])]
 
 # Add steps to the session
@@ -225,7 +249,9 @@ print('--steps--')
 print(df_steps)
 print('---------')
 
+# -----------
 # Create Events
+# -----------
 
 eventsClsList = [Event(id = i, name=e, step_id=sid) for i, e, sid in zip( eventsDic['id'], eventsDic['name'], eventsDic['step_id'] )]
 
@@ -245,97 +271,21 @@ print('--Events--')
 print(df_events)
 print('---------')
 
+# -----------
 # Create Groups
+# -----------
 
+groupsClsList = [Group(id = i, name=g, event_id=eid) for i, g, eid in zip( groupsDic['id'], groupsDic['name'], groupsDic['event_id'] )]
 
-"""
-
-
-
-steps_schema_dump = steps_schema.dump(steps)
-stepIdMap = {sDic['id']:sDic['name'] for sDic in steps_schema_dump}
-print('steps dump')
-for s in steps_schema_dump:
-    print(s)
-
-
-#get, create and add events 
-
-eid = 1
-for sDic in steps_schema_dump:
-    sid = sDic['id']
-    sname = sDic['name']
-    path = recordsDirs + sname #f'C:/Users/g_gos/records/{sname}'
-    print('path',path)
-    if os.path.isdir(path):
-        eventsList = get_sub_dirs(path)
-        print('events',eventsList)
-        for eventName in eventsList:
-            event = Event(id = eid,name=eventName, step_id = sid)
-            print('created event in raw',event.id,event.name)
-            session.add(event)
-            eid = eid+1
-    else:
-        print('error dir does not exist')
-
-
+# Add groups to the session
+session.add_all(groupsClsList)
 session.commit()
 
-#print events table
-events = session.query(Event).all()
-
-# Convert to pandas DataFrame
-events_data = [{'id': event.id, 'name': event.name, 'step_id': event.step_id, 'step_name': stepIdMap[event.step_id]} for event in events]
-df_events = pd.DataFrame(events_data)
-
-# Print DataFrame
-print('--Events--')
-print(df_events)
-print('---------')
-
-
-#steps_schema_dump = steps_schema.dump(steps)
-print('steps dump')
-for s in steps_schema_dump:
-    print(s)
-
-events_schema_dump = events_schema.dump(events)
-eventIdMap = {eDic['id']:eDic['name'] for eDic in events_schema_dump}
-print('events dump')
-for e in events_schema_dump:
-    print(e)
-
-
-
-#get, create and add groups
-
-
-
-gid = 1
-for eDic in events_schema_dump:
-    eid = eDic['id']
-    ename = eDic['name']
-    sname = stepIdMap[eDic['step_id']]
-    path = recordsDirs + sname + '/' + ename #f'C:/Users/g_gos/records/{sname}/{ename}'
-    print(path)
-    if os.path.isdir(path):
-        gorupList = get_sub_dirs(path)
-        print('groups',gorupList)
-        for groupName in gorupList:
-            group = Group(id=gid, name=groupName, event_id=eid)
-            print('created group',gid,groupName)
-            session.add(group)
-            gid = gid+1
-    else:
-        print('error dir does not exist')
-
-session.commit()
-
-#print events table
+#query groups table
 groups = session.query(Group).all()
 
 # Convert to pandas DataFrame
-group_data = [{'id': group.id, 'name': group.name, 'event_id': group.event_id, 'event_name': eventIdMap[group.event_id]} for group in groups]
+group_data = [{'id': group.id, 'name': group.name, 'event_id': group.event_id} for group in groups]
 df_group = pd.DataFrame(group_data)
 
 # Print DataFrame
@@ -343,60 +293,16 @@ print('--Groups--')
 print(df_group)
 print('---------')
 
-#steps_schema_dump = steps_schema.dump(steps)
-print('steps dump')
-for s in steps_schema_dump:
-    print(s)
+# -----------
+# Create Records
+# -----------
+recordsClsList = [Record(id = i, name=g, version=v , group_id=gid) for i, g, v, gid in zip( recordsDic['id'], recordsDic['name'], recordsDic['ver'], recordsDic['group_id'] )]
 
-#events_schema_dump = events_schema.dump(events)
-print('events dump')
-for e in events_schema_dump:
-    print(e)
-    
-groups_schema_dump = groups_schema.dump(groups)
-print('group dump')
-for g in groups_schema_dump:
-    print(g)
-
-
-rid = 1
-for gDic in groups_schema_dump:
-    gid = gDic['id']
-    gname = gDic['name']
-    eid = gDic['event_id']
-    ename = eventIdMap[eid]
-    sid = df_events[df_events['id']==eid]['step_id'].values[0]
-    print('sid',sid)
-    sname = stepIdMap[sid]
-
-    path =  recordsDirs + sname + '/' + ename + '/' + gname # f'C:/Users/g_gos/records/{sname}/{ename}/{gname}'
-    print(path)
-    if os.path.isdir(path):
-        recordList = get_sub_csvs(path)
-        if len(recordList) > 0:
-            print('record',recordList)
-            for recordName in recordList:
-                record = Record(id=rid, name=recordName.split('.')[0], group_id=gid)
-                print('created',rid,recordName.split('.')[0])
-                print(record)
-                session.add(record)
-                rid = rid+1
-        else:
-            verList = get_sub_dirs(path)
-            for ver in verList:
-                print('ver',ver)
-                recordList = get_sub_csvs(path+'/'+ver)
-                for recordName in recordList:
-                    record = Record(id=rid, name=recordName.split('.')[0], version = ver, group_id=gid)
-                    print('created',rid,recordName.split('.')[0])
-                    session.add(record)
-                    rid = rid+1
-    else:
-        print('error dir does not exist')
-
+# Add records to the session
+session.add_all(recordsClsList)
 session.commit()
 
-#print events table
+#print records table
 records = session.query(Record).all()
 
 # Convert to pandas DataFrame
@@ -408,47 +314,60 @@ print('--Records--')
 print(df_record)
 print('---------')
 
-#steps_schema_dump = steps_schema.dump(steps)
-#print('steps dump', steps_schema_dump)
+# -----------
+# Create Aggregates
+# -----------
 
+aggregatesClsList = []
 
-aid = 1
-for gDic in groups_schema_dump:
-    gid = gDic['id']
-    gname = gDic['name']
-    eid = gDic['event_id']
-    ename = eventIdMap[eid]
-    sid = df_events[df_events['id']==eid]['step_id'].values[0]
-    print('sid',sid)
-    sname = stepIdMap[sid]
+for i, a, ver, rVer, rs, gid in zip( aggregatesDic['id'], 
+                                        aggregatesDic['name'], 
+                                        aggregatesDic['ver'],
+                                        aggregatesDic['recordsVer'],
+                                        aggregatesDic['records'],
+                                        aggregatesDic['group_id'] ):
+    #print('gid',gid)
+    #print('rs',rs,'recods',[[record.name,record.name.split('.')[0],record.group_id] for record in records])
+    recordsClMap = {(record.name.split('.')[0],record.version,record.group_id):record for record in records}
+    #print('record class map')
+    #for k,v in recordsClMap.items():
+    #    print(k,':', v)
+    #    print( (rs[0],rVer,gid) == k, rs[0] == k[0], rVer == k[1], gid == k[2])
+    print(i, a, ver, rVer, rs, gid)
+    for r in rs:
+        print(recordsClMap[(r,rVer,gid)] )
+    #aggRecordsCl = [record for record in records if record.name + '.csv' in rs]
+    aggTemp = Aggregate(id = i, 
+                name=a,
+                version = ver,
+                recordsVersion = rVer,
+                records = [recordsClMap[(r,rVer,gid)]  for r in rs],
+                group_id = gid) 
+    aggregatesClsList.append(aggTemp)
+                
 
-    path =  recordsDirs + sname + '/' + ename + '/' + gname # f'C:/Users/g_gos/records/{sname}/{ename}/{gname}'
-    print(path)
-    if os.path.isdir(path):
-        agregateList = get_sub_json(path)
-        if len(agregateList) > 0:
-            #print('agregate',agregateList)
-            for agregateName in agregateList:
-                print('agregateName',agregateName)
-                with open(path+'/'+agregateName) as json_file:
-                    dicAgg = json.load(json_file)
-                recordsList = []
-                if 'records' in dicAgg:
-                    recordsList = dicAgg['records']
-                    print('dicAgg',recordsList,get_sub_csvs(path+'/preprocessed-VR-sessions'))
-                    recordsClList = []
-                    for recordName in recordsList:
-                        print('recordName',recordName)
-                        print('records in table ',[r.name for r in session.query(Record).filter_by(name = recordName, group_id=gid).all()])
-                        record = session.query(Record).filter_by(name = recordName, group_id=gid).first()
-                        print('record',record)
-                        recordsClList.append(record)
-                    aggregate = Aggregate(id=aid, name=agregateName, records=recordsClList, group_id=gid) #, records= recordsStr bisogna aggiungere i records
-                    print('created',aid, agregateName)
-                    print(aggregate)
-                    session.add(aggregate)
-                    session.commit()
-                    aid = aid+1
+# Add records to the session
+session.add_all(aggregatesClsList)
+session.commit()
+
+#print events table
+aggregates = session.query(Aggregate).all()
+
+# Convert to pandas DataFrame
+aggregates_data = [{'id': aggregate.id, 'name': aggregate.name, 'records':aggregate.records, 'group_id': aggregate.group_id} for aggregate in aggregates]
+df_aggregate = pd.DataFrame(aggregates_data)
+
+# Print DataFrame
+print('--Aggregate--')
+print(df_aggregate)
+print('---------')
+
+print("Database populated successfully!")
+
+# Close the session
+session.close()
+
+"""
 
 session.commit()
 
