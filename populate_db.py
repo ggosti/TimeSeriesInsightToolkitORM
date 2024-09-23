@@ -185,21 +185,22 @@ def getVersionFromRecordFolder(recodsFolder):
 
 def addTemAggregatesToLists(tempAggList,tempPath, gid, aggregatesDic):
     for aggName in tempAggList:
-        with open(tempPath+'/'+aggName) as json_file:
-            dicAgg = json.load(json_file)
-        recordsList = None
-        if 'records' in dicAgg:
-            recordsList = dicAgg['records']
-            recordsVer = getVersionFromRecordFolder(dicAgg["records folder"])
-            #print('recordsVer', recordsVer)
-        aid = len(aggregatesDic['id'])+ 1 # get the number of records id add and increment of one
-        aggregatesDic['id'].append(aid)
-        aggregatesDic['name'].append(aggName)
-        aggregatesDic['path'].append(tempPath)
-        aggregatesDic['ver'].append(None)
-        aggregatesDic['recordsVer'].append(recordsVer)
-        aggregatesDic['records'].append(recordsList)
-        aggregatesDic['group_id'].append(gid)
+        if not 'pars.json' in aggName:
+            with open(tempPath+'/'+aggName) as json_file:
+                dicAgg = json.load(json_file)
+            recordsList = None
+            if 'records' in dicAgg:
+                recordsList = dicAgg['records']
+                recordsVer = getVersionFromRecordFolder(dicAgg["records folder"])
+                #print('recordsVer', recordsVer)
+            aid = len(aggregatesDic['id'])+ 1 # get the number of records id add and increment of one
+            aggregatesDic['id'].append(aid)
+            aggregatesDic['name'].append(aggName)
+            aggregatesDic['path'].append(tempPath)
+            aggregatesDic['ver'].append(None)
+            aggregatesDic['recordsVer'].append(recordsVer)
+            aggregatesDic['records'].append(recordsList)
+            aggregatesDic['group_id'].append(gid)
     #print('aggeregatesRegVerList',aggregateDic['recordsVer'])
     return aggregatesDic
 
@@ -226,7 +227,7 @@ def printAggregates(aggregatesDic):
             print('- ', a ,' ',p,' ',recVer, recs[:3])
         except TypeError:
             print('- ', a ,' ',p,' ',recVer)
-            print('recs',recs)
+            print('ERROR!!!: TyperError for recods',recs)
 
 aggregatesDic = getAggregates(groupsDic['path'],groupsDic['id'],groupsDic['name'])
 printAggregates(aggregatesDic)
