@@ -331,17 +331,10 @@ for i, a, ver, rVer, rs, gid in zip( aggregatesDic['id'],
                                         aggregatesDic['recordsVer'],
                                         aggregatesDic['records'],
                                         aggregatesDic['group_id'] ):
-    #print('gid',gid)
-    #print('rs',rs,'recods',[[record.name,record.name.split('.')[0],record.group_id] for record in records])
     recordsClMap = {(record.name.split('.')[0],record.version,record.group_id):record for record in records}
-    #print('record class map')
-    #for k,v in recordsClMap.items():
-    #    print(k,':', v)
-    #    print( (rs[0],rVer,gid) == k, rs[0] == k[0], rVer == k[1], gid == k[2])
-    print(i, a, ver, rVer, rs, gid)
-    for r in rs:
-        print(recordsClMap[(r,rVer,gid)] )
-    #aggRecordsCl = [record for record in records if record.name + '.csv' in rs]
+    #print(i, a, ver, rVer, rs, gid)
+    #for r in rs:
+    #    print(recordsClMap[(r,rVer,gid)] )
     aggTemp = Aggregate(id = i, 
                 name=a,
                 version = ver,
