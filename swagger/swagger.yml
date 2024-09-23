@@ -219,3 +219,19 @@ components:
           type: string
         group_id:
           type: integer
+
+    Aggregate:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        version:
+          type: string
+        group_id:
+          type: integer
+        records:
+          type: array
+          items:
+            $ref: '#/components/schemas/Record'
