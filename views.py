@@ -1,17 +1,19 @@
 from flask import jsonify, request
 from db import SessionLocal
-from models import Step, Event, Group, Record
-from schemas import StepSchema, EventSchema, GroupSchema, RecordSchema
+from models import Step, Event, Group, Record, Aggregate
+from schemas import StepSchema, EventSchema, GroupSchema, RecordSchema, AggregateSchema
 import pandas as pd
 
-step_schema = StepSchema()
+#step_schema = StepSchema()
 steps_schema = StepSchema(many=True)
-event_schema = EventSchema()
+#event_schema = EventSchema()
 events_schema = EventSchema(many=True)
-group_schema = GroupSchema()
+#group_schema = GroupSchema()
 groups_schema = GroupSchema(many=True)
-record_schema = RecordSchema()
+#record_schema = RecordSchema()
 records_schema = RecordSchema(many=True)
+
+aggregates_schema = AggregateSchema(many=True)
 
 def get_step_id_by_name(session, step_name):
     step = session.query(Step).filter_by(name=step_name).first()
@@ -59,6 +61,8 @@ def get_groups_by_event_id(session, event_id):
 def get_records_by_group_id(session, group_id):
     return session.query(Record).filter(Record.group_id == group_id).all()
 
+def get_aggregates_by_group_id(session, group_id):
+    return session.query(Aggregate).filter(Aggregate.group_id == group_id).all()
 
 #-----------------------------------------
 # API Calls
@@ -106,6 +110,18 @@ def get_group_records(step_name,event_name,group_name):
 
     records = get_records_by_group_id(session, group_id) #(session, step_id, event_id, group_id)
     return jsonify(records_schema.dump(records))
+
+def get_group_aggregates(step_name,event_name,group_name):
+    session = SessionLocal()
+    step_id = get_step_id_by_name(session, step_name)
+    print('step_id',step_id)
+    event_id = get_event_id_with_name(session, step_id, event_name)
+    print('event_id',event_id)
+    group_id = get_group_id_with_name(session, event_id, group_name)
+    print('group_id',group_id)
+
+    aggregates = get_aggregates_by_group_id(session, group_id) #(session, step_id, event_id, group_id)
+    return jsonify(aggregates_schema.dump(aggregates))
 
 # def create_step():
 #     data = request.json

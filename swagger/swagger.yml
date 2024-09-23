@@ -146,7 +146,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Record'
+                  $ref: '#/components/schemas/Aggregate'
 #     post:
 #       operationId: views.create_record
 #       parameters:
@@ -168,6 +168,34 @@ paths:
 #             application/json:
 #               schema:
 #                 $ref: '#/components/schemas/Record'
+  /steps/{step_name}/events/{event_name}/groups/{group_name}/aggregates:
+    get:
+      operationId: views.get_group_aggregates
+      parameters:
+        - name: step_name
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: event_name
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: group_name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A list of aggregates for a group
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Record'
 
 components:
   schemas:
