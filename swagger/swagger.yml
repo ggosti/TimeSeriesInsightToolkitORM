@@ -168,6 +168,38 @@ paths:
 #             application/json:
 #               schema:
 #                 $ref: '#/components/schemas/Record'
+  /steps/{step_name}/events/{event_name}/groups/{group_name}/{version}/{record_name}:
+    get:
+      operationId: views.get_group_record
+      parameters:
+        - name: step_name
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: event_name
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: group_name
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: version
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: record_name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: An record version in a group
   /steps/{step_name}/events/{event_name}/groups/{group_name}/aggregates:
     get:
       operationId: views.get_group_aggregates
@@ -196,6 +228,39 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Record'
+  /steps/{step_name}/events/{event_name}/groups/{group_name}/{aggregate_name}:
+    get:
+      operationId: views.get_group_aggregate
+      parameters:
+        - name: step_name
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: event_name
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: group_name
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: aggregate_name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: An aggregates for recods in a group
+          # content:
+          #   application/json:
+          #     schema:
+          #       type: array
+          #       items:
+          #         $ref: '#/components/schemas/Record'
 
 components:
   schemas:

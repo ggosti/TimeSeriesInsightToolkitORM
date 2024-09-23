@@ -4,6 +4,10 @@ from models import Step, Event, Group, Record, Aggregate
 from schemas import StepSchema, EventSchema, GroupSchema, RecordSchema, AggregateSchema
 import pandas as pd
 
+import json
+import config
+recordsDirs = config.path
+
 #step_schema = StepSchema()
 steps_schema = StepSchema(many=True)
 #event_schema = EventSchema()
@@ -29,6 +33,9 @@ def get_group_id_with_name(session, event_id, group_name):
     group = session.query(Group).filter_by(event_id=event_id).filter_by(name=group_name).first()
     return group.id if group else None
 
+def get_aggregate_id_with_name(session, group_id, aggregate_name):
+    aggregate = session.query(Aggregate).filter_by(event_id=group_id).filter_by(name=aggregate_name).first()
+    return aggregate.id if aggregate else None
 
 def get_groups_by_event_id(session, event_id):
     groups = session.query(Group).all()
@@ -111,6 +118,14 @@ def get_group_records(step_name,event_name,group_name):
     records = get_records_by_group_id(session, group_id) #(session, step_id, event_id, group_id)
     return jsonify(records_schema.dump(records))
 
+def get_group_record(step_name,event_name,group_name,version,record_name):
+    tempPath = recordsDirs+ step_name +'/'+ event_name +'/'+ group_name+'/'+version+'/'
+    csvName = tempPath+record_name
+    print(csvName)
+    df = pd.read_csv(csvName)
+    print('df',df)
+    return df.to_json(orient="columns")
+
 def get_group_aggregates(step_name,event_name,group_name):
     session = SessionLocal()
     step_id = get_step_id_by_name(session, step_name)
@@ -122,6 +137,12 @@ def get_group_aggregates(step_name,event_name,group_name):
 
     aggregates = get_aggregates_by_group_id(session, group_id) #(session, step_id, event_id, group_id)
     return jsonify(aggregates_schema.dump(aggregates))
+
+def get_group_aggregate(step_name,event_name,group_name,aggregate_name):
+    tempPath = recordsDirs+ step_name +'/'+ event_name +'/'+ group_name+'/'
+    with open(tempPath+aggregate_name) as json_file:
+        dicAgg = json.load(json_file)
+    return dicAgg 
 
 # def create_step():
 #     data = request.json
