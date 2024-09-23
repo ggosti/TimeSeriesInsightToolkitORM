@@ -214,7 +214,7 @@ def getAggregates(paths,groupsIdList,groupsList):
             if len(tempAggList) > 0:
                 aggregateDic = addTemAggregatesToLists(tempAggList,tempPath,gid,aggregateDic)
             else:
-                print('error aggregate json does not exist')
+                print('Error aggregate json does not exist in:' + tempPath)
         else:
             print('error dir does not exist for aggregate json')
     return aggregateDic
