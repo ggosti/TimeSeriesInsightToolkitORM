@@ -1,0 +1,19 @@
+<!-- templates/home.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>RP Flask REST API</title>
+</head>
+<body>
+    <h1>
+        Events in {{ step }}:
+    </h1>
+    <ul>
+        {% for event in events %}
+        <li><a href="#">{{ event.name }}</a> {{ event.id }}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

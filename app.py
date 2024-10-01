@@ -1,7 +1,8 @@
 from flask import render_template
 import connexion
 from db import init_db
-from models import Step
+from models import Step, Event
+import views
 
 from db import SessionLocal
 
@@ -14,9 +15,45 @@ app.add_api('swagger.yml')
 
 @app.route("/")
 def home():
+    #session = SessionLocal()
+    #steps = session.query(Step).all()
+    return render_template("home.html")
+
+# get steps
+@app.route("/steps")
+def steps():
     session = SessionLocal()
     steps = session.query(Step).all()
-    return render_template("home.html", steps=steps)
+    return render_template("steps.html", steps=steps)
+
+# get events in step
+@app.route("/steps/<step>/events",methods=['GET'])
+def events_in_step(step):
+    session = SessionLocal()
+    print('step',step)
+    sid = views.get_step_id_by_name(session, step)
+    events = session.query(Event).filter(Event.step_id == sid).all()
+    #steps = session.query(Event).filter(event.).all()
+    return render_template("events_in_step.html", step=step, events=events)
+
+# get events in step
+@app.route("/events",methods=['GET'])
+def events():
+    session = SessionLocal()
+    steps = session.query(Step).all()
+    events = session.query(Event).all()
+    eventsNames = [e.name for e in events]
+    eventsNames = list(dict.fromkeys(eventsNames))
+    eventsNamesWSteps = []
+    for eName in eventsNames:
+        eventsSteps = [e.step for e in session.query(Event).filter(Event.name == eName).all()]
+        eventsStepsNames = [es.name for es in eventsSteps]
+        eventsNamesWSteps.append(eName+" "+str(eventsStepsNames))
+
+    #steps = session.query(Event).filter(event.).all()
+    return render_template("events.html", eventsNamesWSteps=eventsNamesWSteps)
+
+# get events and show in which steps
 
 if __name__ == '__main__':
     # Initialize the database
