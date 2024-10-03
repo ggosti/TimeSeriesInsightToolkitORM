@@ -1,0 +1,36 @@
+/* Dark Mode Styling */
+body {
+    font-family: monospace, sans-serif;
+    background-color: #1e1e1e;
+    color: #f0f0f0;
+    margin: 20px;
+}
+h1, h2 {
+    color: #ffffff;
+}
+.entity-section {
+    margin-bottom: 30px;
+}
+.entity-list {
+    margin-top: 10px;
+    padding-left: 20px;
+}
+.entity-item {
+    margin-bottom: 5px;
+}
+a {
+    color: #4caf50;
+    text-decoration: none;
+}
+a:hover {
+    text-decoration: underline;
+}
+/* Links styling */
+.entity-item a {
+    padding: 8px;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+}
+.entity-item a:hover {
+    background-color: #333;
+}
