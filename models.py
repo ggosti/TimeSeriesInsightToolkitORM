@@ -10,6 +10,13 @@ aggregate_records = Table(
     Column('record_id', Integer, ForeignKey('records.id'))
 )
 
+# Association table for Event <-> Step
+event_steps = Table(
+    'event_step', Base.metadata,
+    Column('step_id', Integer, ForeignKey('steps.id')),
+    Column('event_id', Integer, ForeignKey('events.id'))
+)
+
 class Step(Base):
     """
     Steps model for managing groups of records and aggregates from events.
@@ -19,20 +26,82 @@ class Step(Base):
     >>> Session = sessionmaker(bind=engine)
     >>> session = Session()
 
-    >>> step = Step(id=1, name="Test Step")
-    >>> session.add(step)
+    >>> step1 = Step(id=1, name="Test Step 1")
+    >>> session.add(step1)
+    >>> step2 = Step(id=2, name="Test Step 2")
+    >>> session.add(step2)
     >>> session.commit()
 
-    >>> step.name
-    'Test Step'
+    >>> step1.name
+    'Test Step 1'
 
     >>> session.query(Step).first().name
-    'Test Step'
+    'Test Step 1'
+
+    >>> [s.name for s in session.query(Step).all()]
+    ['Test Step 1', 'Test Step 2']
+    
     """
     __tablename__ = 'steps'
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
-    events = relationship('Event', back_populates='step')
+    eventsInStep = relationship('EventFolder', back_populates='step')
+    #events = relationship('Event', back_populates='steps')
+    events = relationship('Event', secondary=event_steps, back_populates='steps')
+
+class EventFolder(Base):
+    """
+    EventsFolder model for managing groups of records and aggregates from events folfers.
+    Each step may have an event folder, \
+    but a single event may corrispond to different events foders in different steps.
+
+    >>> engine = create_engine('sqlite:///:memory:')
+    >>> Base.metadata.create_all(engine)
+    >>> Session = sessionmaker(bind=engine)
+    >>> session = Session()
+
+    >>> step1 = Step(id=1, name="Test Step 1")
+    >>> session.add(step1)
+    >>> step2 = Step(id=2, name="Test Step 2")
+    >>> session.add(step2)
+    >>> session.commit()
+
+    >>> eventFolder1 = EventFolder(id=1, name="Test Event 1", step_id=step1.id)
+    >>> session.add(eventFolder1)
+    >>> eventFolder2 = EventFolder(id=2, name="Test Event 2", step_id=step1.id)
+    >>> session.add(eventFolder2)
+    >>> eventFolder3 = EventFolder(id=3, name="Test Event 1", step_id=step2.id)
+    >>> session.add(eventFolder3)
+    >>> session.commit()
+
+    >>> eventFolder1.name
+    'Test Event 1'
+
+    >>> eventFolder2.name
+    'Test Event 2'
+
+    >>> session.query(EventFolder).first().name
+    'Test Event 1'
+    
+    >>> session.query(EventFolder).first().step_id
+    1
+
+    >>> [(ef.id,ef.name,ef.step_id) for ef in session.query(EventFolder).all()]
+    [(1, 'Test Event 1', 1), (2, 'Test Event 2', 1), (3, 'Test Event 1', 2)]
+
+    >>> [(type(ef).__name__) for ef in session.query(EventFolder).all()]
+    ['EventFolder', 'EventFolder', 'EventFolder']
+
+    >>> [(type(ef.step).__name__) for ef in session.query(EventFolder).all()]
+    ['Step', 'Step', 'Step']
+
+    """
+    __tablename__ = 'eventFolders'
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
+    step_id = Column(Integer, ForeignKey('steps.id'), nullable=False)
+    step = relationship('Step', back_populates='eventsInStep')
+    #groups = relationship('Group', back_populates='eventFolders')
 
 class Event(Base):
     """
@@ -43,10 +112,23 @@ class Event(Base):
     >>> Session = sessionmaker(bind=engine)
     >>> session = Session()
 
-    >>> step = Step(id=1, name="Test Step")
-    >>> session.add(step)
+    >>> step1 = Step(id=1, name="Test Step 1")
+    >>> session.add(step1)
+    >>> step2 = Step(id=2, name="Test Step 2")
+    >>> session.add(step2)
     >>> session.commit()
 
+    >>> eventFolder1 = EventFolder(id=1, name="Test Event 1", step_id=step1.id)
+    >>> session.add(eventFolder1)
+    >>> eventFolder2 = EventFolder(id=2, name="Test Event 2", step_id=step1.id)
+    >>> session.add(eventFolder2)
+    >>> eventFolder3 = EventFolder(id=3, name="Test Event 1", step_id=step2.id)
+    >>> session.add(eventFolder3)
+    >>> session.commit()
+
+    >>> [(ef.id,ef.name,ef.step_id) for ef in session.query(EventFolder).all()]
+
+    TODO:
     >>> event1 = Event(id=1, name="Test Event 1", step_id=step.id)
     >>> session.add(event1)
     >>> event2 = Event(id=2, name="Test Event 2", step_id=step.id)
@@ -68,8 +150,10 @@ class Event(Base):
     __tablename__ = 'events'
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
-    step_id = Column(Integer, ForeignKey('steps.id'), nullable=False)
-    step = relationship('Step', back_populates='events')
+    #steps_id = Column(Integer, ForeignKey('steps.id'), nullable=False)
+    #step = relationship('Step', back_populates='events')
+    # Many-to-many relationship with Record
+    steps = relationship('Step', secondary=event_steps, back_populates='events')
     groups = relationship('Group', back_populates='event')
 
 class Group(Base):
@@ -224,3 +308,96 @@ class Aggregate(Base):
     records = relationship('Record', secondary=aggregate_records, back_populates='aggregates')
 
 
+if __name__ == "__main__":
+    engine = create_engine('sqlite:///:memory:')
+    Base.metadata.create_all(engine)
+    Session = sessionmaker(bind=engine)
+    session = Session()
+
+    step1 = Step(id=1, name="Test Step 1")
+    session.add(step1)
+    step2 = Step(id=2, name="Test Step 2")
+    session.add(step2)
+    session.commit()
+
+    print('step name')
+    print(step1.name)
+    # 'Test Step'
+
+    print('query first')
+    print(session.query(Step).first().name)
+    # 'Test Step'
+
+    print('query all')
+    print([s.name for s in session.query(Step).all()])
+
+    eventFolder1 = EventFolder(id=1, name="Test Event 1", step_id=step1.id)
+    session.add(eventFolder1)
+    eventFolder2 = EventFolder(id=2, name="Test Event 2", step_id=step1.id)
+    session.add(eventFolder2)
+    eventFolder3 = EventFolder(id=3, name="Test Event 1", step_id=step2.id)
+    session.add(eventFolder3)
+    session.commit()
+
+    print('event1 name')
+    print(eventFolder1.name)
+    #'Test Event 1'
+
+    print(eventFolder2.name)
+    #'Test Event 2'
+
+    print(session.query(EventFolder).first().name)
+    #'Test Event 1'
+    
+    print(session.query(EventFolder).first().step_id)
+    # 1
+
+    print([(ef.id,ef.name,ef.step_id) for ef in session.query(EventFolder).all()])
+    # [('Test Event 1', 1), ('Test Event 2', 1), ('Test Event 1', 2)]
+
+    print([(type(ef).__name__) for ef in session.query(EventFolder).all()])
+
+    print([(type(ef.step).__name__) for ef in session.query(EventFolder).all()])
+
+    events_names = set([ef.name for ef in session.query(EventFolder).all()])
+    print(events_names)
+
+    eid = 1
+    for event_name in events_names:
+        print('event_name',event_name)
+        print([(ef.id,ef.name,ef.step_id) for ef in session.query(EventFolder).all()])
+        print([(ef.id,ef.name,ef.step_id) for ef in session.query(EventFolder).filter(EventFolder.name == event_name).all()])
+        event_steps = [ef.step for ef in session.query(EventFolder).filter(EventFolder.name == event_name).all()]
+        print(event_steps)
+        event = Event(id=eid,name=event_name,steps=event_steps)
+        session.add(event)
+        session.commit()
+        print(event.id,event.name,event.steps)
+        eid =eid+1
+
+    
+    print([(e.id,e.name,[s.name for s in e.steps]) for e in session.query(Event).all()])
+
+    #print[(ef.id,ef.name,ef.step_id,,ef.step) for ef in session.query(EventFolder).all()]
+
+"""
+    >>> eventFolder1 = EventFolder(id=1, name="Test Event 1", step_id=step1.id)
+    >>> session.add(eventFolder1)
+    >>> eventFolder2 = EventFolder(id=2, name="Test Event 2", step_id=step1.id)
+    >>> session.add(eventFolder2)
+    >>> eventFolder3 = EventFolder(id=3, name="Test Event 1", step_id=step1.id)
+    >>> session.add(eventFolder3)
+    >>> session.commit()
+
+    >>> eventFolder1.name
+    'Test Event 1'
+
+    >>> eventFolder2.name
+    'Test Event 2'
+
+    >>> session.query(Event).first().name
+    'Test Event 1'
+    
+    >>> session.query(Event).first().step_id
+    1
+"""
