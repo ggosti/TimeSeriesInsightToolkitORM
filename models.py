@@ -101,7 +101,6 @@ class EventFolder(Base):
     name = Column(String, nullable=False)
     step_id = Column(Integer, ForeignKey('steps.id'), nullable=False)
     step = relationship('Step', back_populates='eventsInStep')
-    #groups = relationship('Group', back_populates='eventFolders')
 
 class Event(Base):
     """
@@ -364,19 +363,15 @@ if __name__ == "__main__":
 
     eid = 1
     for event_name in events_names:
-        print('event_name',event_name)
-        print([(ef.id,ef.name,ef.step_id) for ef in session.query(EventFolder).all()])
-        print([(ef.id,ef.name,ef.step_id) for ef in session.query(EventFolder).filter(EventFolder.name == event_name).all()])
         event_steps = [ef.step for ef in session.query(EventFolder).filter(EventFolder.name == event_name).all()]
-        print(event_steps)
         event = Event(id=eid,name=event_name,steps=event_steps)
         session.add(event)
         session.commit()
-        print(event.id,event.name,event.steps)
         eid =eid+1
 
     
     print([(e.id,e.name,[s.name for s in e.steps]) for e in session.query(Event).all()])
+    print([(s.id,s.name,[ef.name for ef in s.eventsInStep]) for s in session.query(Step).all()])
 
     #print[(ef.id,ef.name,ef.step_id,,ef.step) for ef in session.query(EventFolder).all()]
 
