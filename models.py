@@ -4,18 +4,18 @@ from sqlalchemy.orm import relationship, sessionmaker, declarative_base
 Base = declarative_base()
 
 # Association table for Aggregate <-> Record
-aggregate_records = Table(
-    'aggregate_records', Base.metadata,
-    Column('aggregate_id', Integer, ForeignKey('aggregates.id')),
-    Column('record_id', Integer, ForeignKey('records.id'))
-)
+#aggregate_records = Table(
+#    'aggregate_records', Base.metadata,
+#    Column('aggregate_id', Integer, ForeignKey('aggregates.id')),
+#    Column('record_id', Integer, ForeignKey('records.id'))
+#)
 
 # Association table for Event <-> Step
-event_steps = Table(
-    'event_step', Base.metadata,
-    Column('step_id', Integer, ForeignKey('steps.id')),
-    Column('event_id', Integer, ForeignKey('events.id'))
-)
+#event_steps = Table(
+#    'event_step', Base.metadata,
+#    Column('step_id', Integer, ForeignKey('steps.id')),
+#    Column('event_id', Integer, ForeignKey('events.id'))
+#)
 
 
 class RawEvent(Base):
@@ -27,68 +27,67 @@ class RawEvent(Base):
     >>> Session = sessionmaker(bind=engine)
     >>> session = Session()
 
-    >>> event1 = RawEvent(id=1, name="Test Raw Event 1")
-    >>> session.add(event1)
-    >>> event2 = RawEvent(id=2, name="Test Raw Event 2")
-    >>> session.add(event2)
+    >>> revent1 = RawEvent(id=1, name="Test Raw Event 1")
+    >>> session.add(revent1)
+    >>> revent2 = RawEvent(id=2, name="Test Raw Event 2")
+    >>> session.add(revent2)
     >>> session.commit()
 
-    >>> event1.name
+    >>> revent1.name
     'Test Raw Event 1'
 
-    >>> event2.name
+    >>> revent2.name
     'Test Raw Event 2'
 
-    >>> session.query(Event).first().name
+    >>> session.query(RawEvent).first().name
     'Test Raw Event 1'
-    
-    >>> session.query(Event).first().event_name
-    1
     """
     __tablename__ = 'rawEvent'
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
     startDate = Column(Date, nullable=True)
     endDate = Column(Date, nullable=True)
-    event_name = Column(String, nullable=True)
+    location = Column(String, nullable=True)
     notes = Column(String, nullable=True)
     groups = relationship('Group', back_populates='event')
 
 
-# class rawGroup(Base):
-#     """
-#     Raw group model for managing groups of records from acquired raw folser.
+class rawGroup(Base):
+    """
+    Raw group model for managing groups of records from acquired raw folser.
 
-#     >>> engine = create_engine('sqlite:///:memory:')
-#     >>> Base.metadata.create_all(engine)
-#     >>> Session = sessionmaker(bind=engine)
-#     >>> session = Session()
+    >>> engine = create_engine('sqlite:///:memory:')
+    >>> Base.metadata.create_all(engine)
+    >>> Session = sessionmaker(bind=engine)
+    >>> session = Session()
 
-#     >>> group1 = rawGroup(id=1, name="Test Raw Group 1", event_name="Event 1")
-#     >>> session.add(group1)
-#     >>> group2 = rawGroup(id=2, name="Test Raw Group 2", event_name="Event 2")
-#     >>> session.add(group2)
-#     >>> session.commit()
+    >>> group1 = rawGroup(id=1, name="Test Raw Group 1", event_name="Event 1")
+    >>> session.add(group1)
+    >>> group2 = rawGroup(id=2, name="Test Raw Group 2", event_name="Event 2")
+    >>> session.add(group2)
+    >>> session.commit()
 
-#     >>> group1.name
-#     'Test Raw Group 1'
+    >>> group1.name
+    'Test Raw Group 1'
 
-#     >>> group2.name
-#     'Test Raw Group 2'
+    >>> group2.name
+    'Test Raw Group 2'
 
-#     >>> session.query(Group).first().name
-#     'Test Raw Group 1'
+    >>> session.query(Group).first().name
+    'Test Raw Group 1'
     
-#     >>> session.query(Group).first().event_name
-#     1
-#     """
-#     __tablename__ = 'rawGroup'
-#     id = Column(Integer, primary_key=True)
-#     name = Column(String, nullable=False)
-#     startDate = Column(Date, nullable=True)
-#     endDate = Column(Date, nullable=True)
-#     event_name = Column(String, nullable=True)
-#     notes = Column(String, nullable=True)
+    >>> session.query(Group).first().event_name
+    1
+    """
+    __tablename__ = 'rawGroup'
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
+    startDate = Column(Date, nullable=True)
+    endDate = Column(Date, nullable=True)
+    event = Column(String, nullable=True)
+    notes = Column(String, nullable=True)
+    rawevent_id = Column(Integer, ForeignKey('events.id'), nullable=False)
+    rawevent = relationship('Event', back_populates='groups')
 
 # class rawRecord(Base):
 #     __tablename__ = 'rawRecord'
@@ -404,18 +403,22 @@ if __name__ == "__main__":
     session.add(revent2)
     session.commit()
 
+    rgroup1 = rawGroup(id=1, name="Test Raw Group 1", event_id=revent1.id)
+    session.add(rgroup1)
+    rgroup2 = rawGroup(id=2, name="Test Raw Group 2", event_id=revent2.id)
+    session.add(rgroup2)
+    session.commit()
 
+    rgroup1.name
+    'Test Raw Group 1'
 
-    event1.name
-    'Test Raw Event 1'
+    rgroup2.name
+    'Test Raw Group 2'
 
-    event2.name
-    'Test Raw Event 2'
-
-    session.query(Event).first().name
-    'Test Raw Event 1'
+    session.query(Group).first().name
+    'Test Raw Group 1'
     
-    session.query(Event).first().event_name
+    session.query(Group).first().event_name
     1
 
 
