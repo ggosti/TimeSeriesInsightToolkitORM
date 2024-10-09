@@ -106,17 +106,81 @@ class RawGroup(Base):
     rawevent_id = Column(Integer, ForeignKey('rawEvent.id'), nullable=False)
     rawevent = relationship('RawEvent', back_populates='rawgroups')
 
-# class rawRecord(Base):
-#     __tablename__ = 'rawRecord'
-#     id = Column(Integer, primary_key=True)
-#     name = Column(String, nullable=False)
-#     startTime = Column(DateTime, nullable=True)
-#     endTime = Column(DateTime, nullable=True)
-#     totalTime = Column(Numeric, nullable=True)
-#     totalVariation = Column(Numeric, nullable=True)
-#     navigation = Column(String, nullable=True)
-#     event_name = Column(String, nullable=True)
-#     notes = Column(String, nullable=True)
+    rawrecords = relationship('RawRecord', back_populates='rawgroup')
+
+class RawRecord(Base):
+    """
+    Raw record model for managing records from groups in acquired raw folser.
+
+    >>> engine = create_engine('sqlite:///:memory:')
+    >>> Base.metadata.create_all(engine)
+    >>> Session = sessionmaker(bind=engine)
+    >>> session = Session()
+
+    >>> revent1 = RawEvent(id=1, name="Test Raw Event 1")
+    >>> session.add(revent1)
+    >>> revent2 = RawEvent(id=2, name="Test Raw Event 2")
+    >>> session.add(revent2)
+    >>> session.commit()
+
+    >>> rgroup1 = RawGroup(id=1, name="Test Raw Group 1", rawevent_id=revent1.id)
+    >>> session.add(rgroup1)
+    >>> rgroup2 = RawGroup(id=2, name="Test Raw Group 2", rawevent_id=revent2.id)
+    >>> session.add(rgroup2)
+    >>> rgroup3 = RawGroup(id=3, name="Test Raw Group 3", rawevent_id=revent1.id)
+    >>> session.add(rgroup3)
+    >>> session.commit()
+
+    >>> rrecord1 = RawRecord(id=1, name="Test Raw Record 1", rawgroup_id=rgroup1.id)
+    >>> session.add(rrecord1)
+    >>> rrecord2 = RawRecord(id=2, name="Test Raw Record 2", rawgroup_id=rgroup1.id)
+    >>> session.add(rrecord2)
+    >>> rrecord3 = RawRecord(id=3, name="Test Raw Record 3", rawgroup_id=rgroup2.id)
+    >>> session.add(rrecord3)
+    >>> rrecord4 = RawRecord(id=4, name="Test Raw Record 4", rawgroup_id=rgroup3.id)
+    >>> session.add(rrecord4)
+    >>> session.commit()    
+
+    >>> rrecord1.name
+    'Test Raw Record 1'
+
+    >>> rrecord4.name
+    'Test Raw Record 4'
+
+    >>> session.query(RawRecord).first().name
+    'Test Raw Record 1'
+    
+    >>> session.query(RawRecord).first().rawgroup_id
+    1
+
+    >>> session.query(RawRecord).first().rawgroup.name
+    'Test Raw Group 1'
+
+    >>> session.query(RawRecord).first().rawgroup.rawevent.name
+    'Test Raw Event 1'
+
+    >>> [rr.name for rr in session.query(RawRecord).all()]
+    ['Test Raw Record 1', 'Test Raw Record 2', 'Test Raw Record 3', 'Test Raw Record 4']
+
+    >>> [[rr.name for rr in rg.rawrecords] for rg in session.query(RawGroup).all()]
+    [['Test Raw Record 1', 'Test Raw Record 2'], ['Test Raw Record 3'], ['Test Raw Record 4']]
+        
+    """
+    __tablename__ = 'rawRecord'
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
+    startTime = Column(DateTime, nullable=True)
+    endTime = Column(DateTime, nullable=True)
+    totalTime = Column(Numeric, nullable=True)
+    totalVariation = Column(Numeric, nullable=True)
+    navigationMods = Column(String, nullable=True)
+    notes = Column(String, nullable=True)
+
+    #rawevent_id = Column(Integer, ForeignKey('rawEvent.id'), nullable=False)
+    #rawevent = relationship('RawEvent', back_populates='rawrecods')
+
+    rawgroup_id = Column(Integer, ForeignKey('rawGroup.id'), nullable=False)
+    rawgroup = relationship('RawGroup', back_populates='rawrecords')
 
 # class Step(Base):
 #     """
@@ -428,26 +492,39 @@ if __name__ == "__main__":
     session.add(rgroup3)
     session.commit()
 
-    print(rgroup1.name)
-    'Test Raw Group 1'
+    rrecord1 = RawRecord(id=1, name="Test Raw Record 1", rawgroup_id=rgroup1.id)
+    session.add(rrecord1)
+    rrecord2 = RawRecord(id=2, name="Test Raw Record 2", rawgroup_id=rgroup1.id)
+    session.add(rrecord2)
+    rrecord3 = RawRecord(id=3, name="Test Raw Record 3", rawgroup_id=rgroup2.id)
+    session.add(rrecord3)
+    rrecord4 = RawRecord(id=4, name="Test Raw Record 4", rawgroup_id=rgroup3.id)
+    session.add(rrecord4)
+    session.commit()
 
-    print(rgroup2.name)
-    'Test Raw Group 2'
+    print(rrecord1.name)
+    'Test Raw Record 1'
 
-    print(session.query(RawGroup).first().name)
+    print(rrecord4.name)
+    'Test Raw Record 4'
+
+    print(session.query(RawRecord).first().name)
     'Test Raw Group 1'
     
-    print(session.query(RawGroup).first().rawevent_id)
+    print(session.query(RawRecord).first().rawgroup_id)
     1
 
-    print(session.query(RawGroup).first().rawevent.name)
+    print(session.query(RawRecord).first().rawgroup.name)
+    'Test Raw Group 1'
+
+    print(session.query(RawRecord).first().rawgroup.rawevent.name)
     'Test Raw Event 1'
 
-    print([re.name for re in session.query(RawEvent).all()])
-    ['Test Raw Event 1', 'Test Raw Event 2']
+    print([rr.name for rr in session.query(RawRecord).all()])
+    ['Test Raw Record 1', 'Test Raw Record 2', 'Test Raw Record 3', 'Test Raw Record 4']
 
-    print([[rg.name for rg in re.rawgroups] for re in session.query(RawEvent).all()])
-    [['Test Raw Group 1', 'Test Raw Group 3'], ['Test Raw Group 2']]
+    print([[rr.name for rr in rg.rawrecords] for rg in session.query(RawGroup).all()])
+    [['Test Raw Record 1', 'Test Raw Record 2'], ['Test Raw Record 3'], ['Test Raw Record 4']]
 
 
 """
