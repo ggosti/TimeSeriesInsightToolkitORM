@@ -49,10 +49,10 @@ class RawEvent(Base):
     endDate = Column(Date, nullable=True)
     location = Column(String, nullable=True)
     notes = Column(String, nullable=True)
-    groups = relationship('Group', back_populates='event')
+    rawgroups = relationship('RawGroup', back_populates='rawevent')
 
 
-class rawGroup(Base):
+class RawGroup(Base):
     """
     Raw group model for managing groups of records from acquired raw folser.
 
@@ -61,33 +61,50 @@ class rawGroup(Base):
     >>> Session = sessionmaker(bind=engine)
     >>> session = Session()
 
-    >>> group1 = rawGroup(id=1, name="Test Raw Group 1", event_name="Event 1")
-    >>> session.add(group1)
-    >>> group2 = rawGroup(id=2, name="Test Raw Group 2", event_name="Event 2")
-    >>> session.add(group2)
+    >>> revent1 = RawEvent(id=1, name="Test Raw Event 1")
+    >>> session.add(revent1)
+    >>> revent2 = RawEvent(id=2, name="Test Raw Event 2")
+    >>> session.add(revent2)
     >>> session.commit()
 
-    >>> group1.name
+    >>> rgroup1 = RawGroup(id=1, name="Test Raw Group 1", rawevent_id=revent1.id)
+    >>> session.add(rgroup1)
+    >>> rgroup2 = RawGroup(id=2, name="Test Raw Group 2", rawevent_id=revent2.id)
+    >>> session.add(rgroup2)
+    >>> rgroup3 = RawGroup(id=3, name="Test Raw Group 3", rawevent_id=revent1.id)
+    >>> session.add(rgroup3)
+    >>> session.commit()
+
+    >>> rgroup1.name
     'Test Raw Group 1'
 
-    >>> group2.name
+    >>> rgroup2.name
     'Test Raw Group 2'
 
-    >>> session.query(Group).first().name
+    >>> session.query(RawGroup).first().name
     'Test Raw Group 1'
     
-    >>> session.query(Group).first().event_name
+    >>> session.query(RawGroup).first().rawevent_id
     1
+
+    >>> session.query(RawGroup).first().rawevent.name
+    'Test Raw Event 1'
+
+    >>> [re.name for re in session.query(RawEvent).all()]
+    ['Test Raw Event 1', 'Test Raw Event 2']
+
+    >>> [[rg.name for rg in re.rawgroups] for re in session.query(RawEvent).all()]
+    [['Test Raw Group 1', 'Test Raw Group 3'], ['Test Raw Group 2']]
+        
     """
     __tablename__ = 'rawGroup'
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
     startDate = Column(Date, nullable=True)
     endDate = Column(Date, nullable=True)
-    event = Column(String, nullable=True)
     notes = Column(String, nullable=True)
-    rawevent_id = Column(Integer, ForeignKey('events.id'), nullable=False)
-    rawevent = relationship('Event', back_populates='groups')
+    rawevent_id = Column(Integer, ForeignKey('rawEvent.id'), nullable=False)
+    rawevent = relationship('RawEvent', back_populates='rawgroups')
 
 # class rawRecord(Base):
 #     __tablename__ = 'rawRecord'
@@ -403,23 +420,34 @@ if __name__ == "__main__":
     session.add(revent2)
     session.commit()
 
-    rgroup1 = rawGroup(id=1, name="Test Raw Group 1", event_id=revent1.id)
+    rgroup1 = RawGroup(id=1, name="Test Raw Group 1", rawevent_id=revent1.id)
     session.add(rgroup1)
-    rgroup2 = rawGroup(id=2, name="Test Raw Group 2", event_id=revent2.id)
+    rgroup2 = RawGroup(id=2, name="Test Raw Group 2", rawevent_id=revent2.id)
     session.add(rgroup2)
+    rgroup3 = RawGroup(id=3, name="Test Raw Group 3", rawevent_id=revent1.id)
+    session.add(rgroup3)
     session.commit()
 
-    rgroup1.name
+    print(rgroup1.name)
     'Test Raw Group 1'
 
-    rgroup2.name
+    print(rgroup2.name)
     'Test Raw Group 2'
 
-    session.query(Group).first().name
+    print(session.query(RawGroup).first().name)
     'Test Raw Group 1'
     
-    session.query(Group).first().event_name
+    print(session.query(RawGroup).first().rawevent_id)
     1
+
+    print(session.query(RawGroup).first().rawevent.name)
+    'Test Raw Event 1'
+
+    print([re.name for re in session.query(RawEvent).all()])
+    ['Test Raw Event 1', 'Test Raw Event 2']
+
+    print([[rg.name for rg in re.rawgroups] for re in session.query(RawEvent).all()])
+    [['Test Raw Group 1', 'Test Raw Group 3'], ['Test Raw Group 2']]
 
 
 """
