@@ -49,6 +49,7 @@ class RawEvent(Base):
     endDate = Column(Date, nullable=True)
     location = Column(String, nullable=True)
     notes = Column(String, nullable=True)
+    path = Column(String, nullable=True)
     rawgroups = relationship('RawGroup', back_populates='rawevent')
     rawrecords = relationship('RawRecord', back_populates='rawevent')
 
@@ -111,6 +112,7 @@ class RawGroup(Base):
     startDate = Column(Date, nullable=True)
     endDate = Column(Date, nullable=True)
     notes = Column(String, nullable=True)
+    path = Column(String, nullable=True)
     rawevent_id = Column(Integer, ForeignKey('rawEvents.id'), nullable=True)
     rawevent = relationship('RawEvent', back_populates='rawgroups')
 
@@ -193,6 +195,7 @@ class RawRecord(Base):
     totalVariation = Column(Numeric, nullable=True)
     navigationMods = Column(String, nullable=True)
     notes = Column(String, nullable=True)
+    path = Column(String, nullable=True)
 
     rawevent_id = Column(Integer, ForeignKey('rawEvents.id'), nullable=True)
     rawevent = relationship('RawEvent', back_populates='rawrecords')
@@ -336,6 +339,7 @@ class Event(Base):
     endDate = Column(Date, nullable=True)
     location = Column(String, nullable=True)
     notes = Column(String, nullable=True)
+    path = Column(String, nullable=True)
     # connections
     rawevent_id = Column(Integer, ForeignKey('rawEvents.id'), nullable=False)
     rawevent = relationship('RawEvent')#, back_populates='event')
