@@ -1,6 +1,6 @@
 from marshmallow import Schema, fields
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema, auto_field
-from models import Base, RawRecord, RawGroup, Event, create_engine #, Step,  Group, Record, Aggregate
+from models import Base, RawEvent, RawRecord, RawGroup, Event, create_engine #, Step,  Group, Record, Aggregate
 
 #from sqlalchemy import Column, Integer, String, ForeignKey, Table,create_engine #Column, Integer, String, ForeignKey, Table, create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base #, relationship
@@ -325,13 +325,13 @@ class RawEventSchema(SQLAlchemyAutoSchema):
     >>> session = Session()
         
     Example JSON data
-    >>> json_raw_event = {'name': 'Test Raw Event'}
+    >>> json_raw_event = {'name': 'Test Raw Event', }
 
     Deserialize JSON data into a User object
     >>> raw_event_schema = RawEventSchema()
     >>> raw_event = raw_event_schema.load(json_raw_event, session=session)
     >>> raw_event.name
-    'Test Event'
+    'Test Raw Event'
     
     Add to the session and commit to the database
     >>> session.add(raw_event)
@@ -343,15 +343,22 @@ class RawEventSchema(SQLAlchemyAutoSchema):
     >>> [g.id for g in session.query(RawEvent).all()]
     [1]
     
-    >>> event_schema.dump(session.query(RawEvent).first())['id']
+    >>> raw_event_schema.dump(session.query(RawEvent).first())['id']
     1
-    >>> event_schema.dump(session.query(RawEvent).first())['name']
+    >>> raw_event_schema.dump(session.query(RawEvent).first())['name']
     'Test Raw Event'
     """
     
     class Meta:
-        model = Event
+        model = RawEvent
         load_instance = True
         include_fk = True  # Include foreign keys (e.g., step_id)
-        
-    #groups = fields.List(fields.Nested(GroupSchema))
+
+    # Fields to make optional during deserialization
+    #startDate = fields.Date(required=False)  # Optional field
+    #endDate = fields.Date(required=False)  # Optional field
+    #location = fields.String(required=False)  # Optional field
+    #notes = fields.String(required=False)  # Optional field
+    #path = fields.String(required=False)  # Optional field   
+    
+    #rawgroups = fields.List(fields.Nested(RawGroupSchema))

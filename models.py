@@ -341,8 +341,8 @@ class Event(Base):
     notes = Column(String, nullable=True)
     path = Column(String, nullable=True)
     # connections
-    rawevent_id = Column(Integer, ForeignKey('rawEvents.id'), nullable=False)
-    rawevent = relationship('RawEvent')#, back_populates='event')
+    #rawevent_id = Column(Integer, ForeignKey('rawEvents.id'), nullable=False)
+    #rawevent = relationship('RawEvent')#, back_populates='event')
 
     #rawPath = Column(String, nullable=True)
     #rawgroups = relationship('RawGroup', back_populates='rawevent')
