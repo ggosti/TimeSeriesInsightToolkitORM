@@ -8,8 +8,8 @@ import json
 import datetime
 import pathlib
 
-from models import Base, RawEvent, RawGroup, RawRecord #Step, Event, Group, Record, Aggregate
-from schemas import RawEventSchema, RawGroupSchema, RawRecordSchema #StepSchema, EventSchema, GroupSchema, RecordSchema
+from models import Base, RawEvent, RawGroup, RawRecord, Event,  Group #Step, Record, Aggregate
+from schemas import RawEventSchema, RawGroupSchema, RawRecordSchema, EventSchema, GroupSchema #StepSchema, RecordSchema
 
 
 raw_event_schema = RawEventSchema()
@@ -17,9 +17,12 @@ raw_events_schema = RawEventSchema(many=True)
 raw_groups_schema = RawGroupSchema(many=True)
 raw_records_schema = RawRecordSchema(many=True)
 
+events_schema = EventSchema(many=True)
+group_schema = GroupSchema()
+groups_schema = GroupSchema(many=True)
 
 import config
-recordsDirs = '/home/gosti/capturedata/' #'C:/Users/g_gos/Downloads/capturedata/' #config.path #'test/records/'  #'/var/www/html/records/' #'C:/Users/g_gos/records/'
+recordsDirs = config.path #'/home/gosti/capturedata/' #'C:/Users/g_gos/Downloads/capturedata/' #config.path #'test/records/'  #'/var/www/html/records/' #'C:/Users/g_gos/records/'
 
 # Replace 'sqlite:///your_database.db' with your actual database connection string
 #DATABASE_URL = "sqlite:///data/data.db"
@@ -41,8 +44,8 @@ session.query(RawEvent).delete()
 session.query(RawGroup).delete()
 session.query(RawRecord).delete()
 #session.query(Step).delete()
-#session.query(Event).delete()
-#session.query(Group).delete()
+session.query(Event).delete()
+session.query(Group).delete()
 #session.query(Record).delete()
 #session.query(Aggregate).delete()
 #session.commit()#
@@ -143,13 +146,14 @@ print('---------')
 # -- Add Raw Records
 # -----------
 
-def addTemRecordsToLists(tempRecordsList, gid, recordsList):
+def addTemRecordsToLists(tempRecordsList, gid, eid, recordsList):
     for recordPath in tempRecordsList:
         rid = len(recordsList)+ 1 # get the number of records id add and increment of one
         tempDic = {'id':rid,
                    'name':recordPath.name,
                    'path':str(recordPath),
-                   'rawgroup_id':gid}
+                   'rawgroup_id':gid,
+                   'rawevent_id':eid}
         recordsList.append(tempDic)
     return recordsList
 
@@ -157,10 +161,11 @@ def getRawRecordsList(rawgroupsList):
     recordsList = [] #{'id':[],'name':[],'path':[], 'rawgroup_id':[]}
     for rg in rawgroupsList:
         gid = rg['id']
+        eid = rg['rawevent_id']
         tempPath = pathlib.Path(rg['path'])
         tempRecordsList = [f for f in tempPath.iterdir() if f.is_file() & (f.suffix == '.csv')]
         tempRecordsList.sort()
-        recordsList =  addTemRecordsToLists(tempRecordsList,gid,recordsList)                                                    
+        recordsList =  addTemRecordsToLists(tempRecordsList,gid,eid,recordsList)                                                    
     return recordsList
 
 
@@ -175,11 +180,11 @@ printRecordsList(rawrecordsList)
 rawrecordsClsList = raw_records_schema.load(rawrecordsList, session=session)
 print(rawrecordsClsList)
 
-## Add events to the session
+## Add records to the session
 session.add_all(rawrecordsClsList)
 session.commit()
 
-#print events table
+#print records table
 rawrecords = session.query(RawRecord).all()
 
 # Convert to pandas DataFrame
@@ -190,3 +195,52 @@ df_raw_record = pd.DataFrame(raw_record_data)
 print('--Records--')
 print(df_raw_record)
 print('---------')
+
+
+
+# -----------
+# -- Add Events mirrowing Raw Events
+# -----------
+
+# get raw events and generate coresponding event table
+rawevents = session.query(RawEvent).all()
+rawevents_data = raw_events_schema.dump(rawevents) 
+
+for re in rawevents_data:
+    re['rawevent_id']=re['id']
+
+eventsClsList = events_schema.load(rawevents_data, session=session)
+print([e.name for e in eventsClsList])
+
+## Add events to the session
+session.add_all(eventsClsList)
+session.commit()
+
+
+# -----------
+# -- Add Groups mirrowing Raw Groups
+# -----------
+
+# get raw groups and generate coresponding groups table
+rawgroups = session.query(RawGroup).all()
+rawgroup_data = raw_groups_schema.dump(rawgroups)
+
+group_data = []
+for rg in rawgroup_data:
+    #print(rg)
+    rg['event_id'] = rg['rawevent_id']
+    rg['rawgroup_id']=rg['id']
+    #rg['version'] = "Raw"
+    del rg['rawevent_id']
+    rg['version'] = 'Raw'
+    #print(rg)
+    group_data.append(rg)
+
+#group_schema.load(rg, session=session)
+
+groupsClsList = groups_schema.load(group_data, session=session)
+print([g.name for g in groupsClsList])
+
+## Add events to the session
+session.add_all(groupsClsList)
+session.commit()

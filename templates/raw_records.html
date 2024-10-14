@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raw Records Viewer</title>
+    <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/style.css') }}">
+</head>
+<body>
+    <h1>
+        Raw Records:
+    </h1>
+    <ul>
+        {% for rawrecord in rawrecords %}
+            <li>{{ rawrecord.name }}, id = {{ rawrecord.id }}, group = {{ rawrecord.rawgroup.name }} , event = {{ rawrecord.rawevent.name }}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

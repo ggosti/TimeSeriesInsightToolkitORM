@@ -9,18 +9,18 @@ servers:
   - url: "/api"
 
 paths:
-  /steps:
-    get:
-      operationId: views.get_steps
-      responses:
-        '200':
-          description: Get a list of steps
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Step'
+#   /steps:
+#     get:
+#       operationId: views.get_steps
+#       responses:
+#         '200':
+#           description: Get a list of steps
+#           content:
+#             application/json:
+#               schema:
+#                 type: array
+#                 items:
+#                   $ref: '#/components/schemas/Step'
 #    post:
 #      operationId: views.create_step
 #      requestBody:
@@ -36,245 +36,154 @@ paths:
 #            application/json:
 #              schema:
 #                $ref: '#/components/schemas/Step'
-  /steps/{step_name}/events:
+  /events:
     get:
-      operationId: views.get_step_events
-      parameters:
-        - name: step_name
-          in: path
-          required: true
-          schema:
-            type: string
+      operationId: views.get_events
       responses:
         '200':
-          description: Get a list of events for a specific step
+          description: Get the list of events.
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/Event'
-#     post:
-#       operationId: views.create_event
-#       parameters:
-#         - name: step_id
-#           in: path
-#           required: true
-#           schema:
-#             type: integer
-#         - in: requestBody
-#           required: true
-#           content:
-#             application/json:
-#               schema:
-#                 $ref: '#/components/schemas/Event'
-#       responses:
-#         '201':
-#           description: Event created
-#           content:
-#             application/json:
-#               schema:
-#                 $ref: '#/components/schemas/Event'
-  /steps/{step_name}/events/{event_name}/groups:
+  /groups:
     get:
-      operationId: views.get_event_groups
-      parameters:
-        - name: step_name
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: event_name
-          in: path
-          required: true
-          schema:
-            type: string
+      operationId: views.get_groups
       responses:
         '200':
-          description: Get a list of groups for a specific step and event.
+          description: Get the list of groups.
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/Group'
-#     post:
-#       operationId: views.create_group
-#       parameters:
-#         - name: event_id
-#           in: path
-#           required: true
-#           schema:
-#             type: integer
-#         - in: requestBody
-#           required: true
-#           content:
-#             application/json:
-#               schema:
-#                 $ref: '#/components/schemas/Group'
-#       responses:
-#         '201':
-#           description: Group created
-#           content:
-#             application/json:
-#               schema:
-#                 $ref: '#/components/schemas/Group'
-  /steps/{step_name}/events/{event_name}/groups/{group_name}/records:
-    get:
-      operationId: views.get_group_records
-      parameters:
-        - name: step_name
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: event_name
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: group_name
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Get a list of records for a specific group in a step and event
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Aggregate'
-#     post:
-#       operationId: views.create_record
-#       parameters:
-#         - name: group_id
-#           in: path
-#           required: true
-#           schema:
-#             type: integer
-#         - in: requestBody
-#           required: true
-#           content:
-#             application/json:
-#               schema:
-#                 $ref: '#/components/schemas/Record'
-#       responses:
-#         '201':
-#           description: Record created
-#           content:
-#             application/json:
-#               schema:
-#                 $ref: '#/components/schemas/Record'
-  /steps/{step_name}/events/{event_name}/groups/{group_name}/{version}/{record_name}:
-    get:
-      operationId: views.get_group_record
-      parameters:
-        - name: step_name
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: event_name
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: group_name
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: version
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: record_name
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: An record version in a group
-  /steps/{step_name}/events/{event_name}/groups/{group_name}/aggregates:
-    get:
-      operationId: views.get_group_aggregates
-      parameters:
-        - name: step_name
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: event_name
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: group_name
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: A list of aggregates for a group
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Record'
-  /steps/{step_name}/events/{event_name}/groups/{group_name}/{aggregate_name}:
-    get:
-      operationId: views.get_group_aggregate
-      parameters:
-        - name: step_name
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: event_name
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: group_name
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: aggregate_name
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: An aggregates for recods in a group
-          # content:
-          #   application/json:
-          #     schema:
-          #       type: array
-          #       items:
-          #         $ref: '#/components/schemas/Record'
+  # /steps/{step_name}/events/{event_name}/groups/{group_name}/records:
+  #   get:
+  #     operationId: views.get_group_records
+  #     parameters:
+  #       - name: step_name
+  #         in: path
+  #         required: true
+  #         schema:
+  #           type: string
+  #       - name: event_name
+  #         in: path
+  #         required: true
+  #         schema:
+  #           type: string
+  #       - name: group_name
+  #         in: path
+  #         required: true
+  #         schema:
+  #           type: string
+  #     responses:
+  #       '200':
+  #         description: Get a list of records for a specific group in a step and event
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: array
+  #               items:
+  #                 $ref: '#/components/schemas/Aggregate'
+  # /steps/{step_name}/events/{event_name}/groups/{group_name}/{version}/{record_name}:
+  #   get:
+  #     operationId: views.get_group_record
+  #     parameters:
+  #       - name: step_name
+  #         in: path
+  #         required: true
+  #         schema:
+  #           type: string
+  #       - name: event_name
+  #         in: path
+  #         required: true
+  #         schema:
+  #           type: string
+  #       - name: group_name
+  #         in: path
+  #         required: true
+  #         schema:
+  #           type: string
+  #       - name: version
+  #         in: path
+  #         required: true
+  #         schema:
+  #           type: string
+  #       - name: record_name
+  #         in: path
+  #         required: true
+  #         schema:
+  #           type: string
+  #     responses:
+  #       '200':
+  #         description: An record version in a group
+  # /steps/{step_name}/events/{event_name}/groups/{group_name}/aggregates:
+  #   get:
+  #     operationId: views.get_group_aggregates
+  #     parameters:
+  #       - name: step_name
+  #         in: path
+  #         required: true
+  #         schema:
+  #           type: string
+  #       - name: event_name
+  #         in: path
+  #         required: true
+  #         schema:
+  #           type: string
+  #       - name: group_name
+  #         in: path
+  #         required: true
+  #         schema:
+  #           type: string
+  #     responses:
+  #       '200':
+  #         description: A list of aggregates for a group
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: array
+  #               items:
+  #                 $ref: '#/components/schemas/Record'
+  # /steps/{step_name}/events/{event_name}/groups/{group_name}/{aggregate_name}:
+  #   get:
+  #     operationId: views.get_group_aggregate
+  #     parameters:
+  #       - name: step_name
+  #         in: path
+  #         required: true
+  #         schema:
+  #           type: string
+  #       - name: event_name
+  #         in: path
+  #         required: true
+  #         schema:
+  #           type: string
+  #       - name: group_name
+  #         in: path
+  #         required: true
+  #         schema:
+  #           type: string
+  #       - name: aggregate_name
+  #         in: path
+  #         required: true
+  #         schema:
+  #           type: string
+  #     responses:
+  #       '200':
+  #         description: An aggregates for recods in a group
+  #         # content:
+  #         #   application/json:
+  #         #     schema:
+  #         #       type: array
+  #         #       items:
+  #         #         $ref: '#/components/schemas/Record'
 
 components:
   schemas:
-    Step:
-      type: object
-      properties:
-        id:
-          type: integer
-        name:
-          type: string
-        events:
-          type: array
-          items:
-            $ref: '#/components/schemas/Event'
     Event:
       type: object
       properties:
@@ -282,12 +191,6 @@ components:
           type: integer
         name:
           type: string
-        step_id:
-          type: integer
-        groups:
-          type: array
-          items:
-            $ref: '#/components/schemas/Group'
     Group:
       type: object
       properties:
@@ -297,10 +200,6 @@ components:
           type: string
         event_id:
           type: integer
-        records:
-          type: array
-          items:
-            $ref: '#/components/schemas/Record'
     Record:
       type: object
       properties:
@@ -313,18 +212,18 @@ components:
         group_id:
           type: integer
 
-    Aggregate:
-      type: object
-      properties:
-        id:
-          type: integer
-        name:
-          type: string
-        version:
-          type: string
-        group_id:
-          type: integer
-        records:
-          type: array
-          items:
-            $ref: '#/components/schemas/Record'
+    # Aggregate:
+    #   type: object
+    #   properties:
+    #     id:
+    #       type: integer
+    #     name:
+    #       type: string
+    #     version:
+    #       type: string
+    #     group_id:
+    #       type: integer
+    #     records:
+    #       type: array
+    #       items:
+    #         $ref: '#/components/schemas/Record'

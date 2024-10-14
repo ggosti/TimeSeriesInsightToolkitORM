@@ -1,6 +1,6 @@
 from marshmallow import Schema, fields
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema, auto_field
-from models import Base, RawEvent, RawRecord, RawGroup, Event, create_engine #, Step,  Group, Record, Aggregate
+from models import Base, RawEvent, RawRecord, RawGroup, Event, Group, create_engine #, Step, Record, Aggregate
 
 #from sqlalchemy import Column, Integer, String, ForeignKey, Table,create_engine #Column, Integer, String, ForeignKey, Table, create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base #, relationship
@@ -98,94 +98,94 @@ from sqlalchemy.orm import sessionmaker, declarative_base #, relationship
 #     # Many-to-many relationship: Subset of records
 #     records = fields.Nested(RecordSchema, many=True)
 
-# class GroupSchema(SQLAlchemyAutoSchema):
-#     """
-#     Schema for Group model.
+class GroupSchema(SQLAlchemyAutoSchema):
+    """
+    Schema for Group model.
     
-#     >>> engine = create_engine('sqlite:///:memory:')
-#     >>> Base.metadata.create_all(engine)
-#     >>> Session = sessionmaker(bind=engine)
-#     >>> session = Session()
+    >>> engine = create_engine('sqlite:///:memory:')
+    >>> Base.metadata.create_all(engine)
+    >>> Session = sessionmaker(bind=engine)
+    >>> session = Session()
         
-#     Example JSON data
-#     >>> json_group = {'name': 'Test Group', 'event_id':1}
+    Example JSON data
+    >>> json_group = {'name': 'Test Group', 'event_id':1}
 
-#     Deserialize JSON data into a User object
-#     >>> group_schema = GroupSchema()
-#     >>> group = group_schema.load(json_group, session=session)
-#     >>> group.name
-#     'Test Group'
+    Deserialize JSON data into a User object
+    >>> group_schema = GroupSchema()
+    >>> group = group_schema.load(json_group, session=session)
+    >>> group.name
+    'Test Group'
     
-#     Add to the session and commit to the database
-#     >>> session.add(group)
-#     >>> session.commit()
+    Add to the session and commit to the database
+    >>> session.add(group)
+    >>> session.commit()
     
-#     >>> [g.name for g in session.query(Group).all()]
-#     ['Test Group']
+    >>> [g.name for g in session.query(Group).all()]
+    ['Test Group']
 
-#     >>> [g.id for g in session.query(Group).all()]
-#     [1]
+    >>> [g.id for g in session.query(Group).all()]
+    [1]
     
-#     >>> group_schema.dump(session.query(Group).first())['id']
-#     1
-#     >>> group_schema.dump(session.query(Group).first())['name']
-#     'Test Group'
-#     >>> group_schema.dump(session.query(Group).first())['event_id']
-#     1
-#     """
-#     class Meta:
-#         model = Group
-#         load_instance = True
-#         include_fk = True  # Include foreign keys (e.g., event_id)
+    >>> group_schema.dump(session.query(Group).first())['id']
+    1
+    >>> group_schema.dump(session.query(Group).first())['name']
+    'Test Group'
+    >>> group_schema.dump(session.query(Group).first())['event_id']
+    1
+    """
+    class Meta:
+        model = Group
+        load_instance = True
+        include_fk = True  # Include foreign keys (e.g., event_id)
         
-#     ## Nested relationship: Aggregates in the group
-#     #aggregates = fields.Nested(AggregateSchema, many=True)
+    ## Nested relationship: Aggregates in the group
+    #aggregates = fields.Nested(AggregateSchema, many=True)
 
-#     ## Nested relationship: Records in the group
-#     #records = fields.Nested(RecordSchema, many=True)
+    ## Nested relationship: Records in the group
+    #records = fields.Nested(RecordSchema, many=True)
 
-# class EventSchema(SQLAlchemyAutoSchema):
-#     """
-#     Schema for Event model.
+class EventSchema(SQLAlchemyAutoSchema):
+    """
+    Schema for Event model.
     
-#     >>> engine = create_engine('sqlite:///:memory:')
-#     >>> Base.metadata.create_all(engine)
-#     >>> Session = sessionmaker(bind=engine)
-#     >>> session = Session()
+    >>> engine = create_engine('sqlite:///:memory:')
+    >>> Base.metadata.create_all(engine)
+    >>> Session = sessionmaker(bind=engine)
+    >>> session = Session()
         
-#     Example JSON data
-#     >>> json_event = {'name': 'Test Event', 'step_id':1}
+    Example JSON data
+    >>> json_event = {'name': 'Test Event', 'step_id':1}
 
-#     Deserialize JSON data into a User object
-#     >>> event_schema = EventSchema()
-#     >>> event = event_schema.load(json_event, session=session)
-#     >>> event.name
-#     'Test Event'
+    Deserialize JSON data into a User object
+    >>> event_schema = EventSchema()
+    >>> event = event_schema.load(json_event, session=session)
+    >>> event.name
+    'Test Event'
     
-#     Add to the session and commit to the database
-#     >>> session.add(event)
-#     >>> session.commit()
+    Add to the session and commit to the database
+    >>> session.add(event)
+    >>> session.commit()
     
-#     >>> [g.name for g in session.query(Event).all()]
-#     ['Test Event']
+    >>> [g.name for g in session.query(Event).all()]
+    ['Test Event']
 
-#     >>> [g.id for g in session.query(Event).all()]
-#     [1]
+    >>> [g.id for g in session.query(Event).all()]
+    [1]
     
-#     >>> event_schema.dump(session.query(Event).first())['id']
-#     1
-#     >>> event_schema.dump(session.query(Event).first())['name']
-#     'Test Event'
-#     >>> event_schema.dump(session.query(Event).first())['step_id']
-#     1
-#     """
+    >>> event_schema.dump(session.query(Event).first())['id']
+    1
+    >>> event_schema.dump(session.query(Event).first())['name']
+    'Test Event'
+    >>> event_schema.dump(session.query(Event).first())['step_id']
+    1
+    """
     
-#     class Meta:
-#         model = Event
-#         load_instance = True
-#         include_fk = True  # Include foreign keys (e.g., step_id)
+    class Meta:
+        model = Event
+        load_instance = True
+        include_fk = True  # Include foreign keys (e.g., step_id)
         
-#     #groups = fields.List(fields.Nested(GroupSchema))
+    #groups = fields.List(fields.Nested(GroupSchema))
 
 # class StepSchema(SQLAlchemyAutoSchema):
 #     """
