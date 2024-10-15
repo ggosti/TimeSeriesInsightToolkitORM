@@ -11,7 +11,7 @@ recordsDirs = config.path
 #event_schema = EventSchema()
 events_schema = EventSchema(many=True, only=('id', 'name','rawevent') )
 #group_schema = GroupSchema()
-groups_schema = GroupSchema(many=True, only=('id', 'name','rawgroup','event'))
+groups_schema = GroupSchema(many=True, only=('id', 'name','version','rawgroup','event'))
 #record_schema = RecordSchema()
 #records_schema = RecordSchema(many=True)
 
