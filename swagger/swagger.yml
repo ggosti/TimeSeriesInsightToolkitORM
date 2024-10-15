@@ -42,24 +42,12 @@ paths:
       responses:
         '200':
           description: Get the list of events.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Event'
   /groups:
     get:
       operationId: views.get_groups
       responses:
         '200':
           description: Get the list of groups.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Group'
   # /steps/{step_name}/events/{event_name}/groups/{group_name}/records:
   #   get:
   #     operationId: views.get_group_records
@@ -181,49 +169,3 @@ paths:
   #         #       type: array
   #         #       items:
   #         #         $ref: '#/components/schemas/Record'
-
-components:
-  schemas:
-    Event:
-      type: object
-      properties:
-        id:
-          type: integer
-        name:
-          type: string
-    Group:
-      type: object
-      properties:
-        id:
-          type: integer
-        name:
-          type: string
-        event_id:
-          type: integer
-    Record:
-      type: object
-      properties:
-        id:
-          type: integer
-        name:
-          type: string
-        version:
-          type: string
-        group_id:
-          type: integer
-
-    # Aggregate:
-    #   type: object
-    #   properties:
-    #     id:
-    #       type: integer
-    #     name:
-    #       type: string
-    #     version:
-    #       type: string
-    #     group_id:
-    #       type: integer
-    #     records:
-    #       type: array
-    #       items:
-    #         $ref: '#/components/schemas/Record'
