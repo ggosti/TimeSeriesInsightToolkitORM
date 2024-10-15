@@ -205,6 +205,8 @@ class RawRecord(Base):
     rawgroup_id = Column(Integer, ForeignKey('rawGroups.id'), nullable=False)
     rawgroup = relationship('RawGroup', back_populates='rawrecords')
 
+    records = relationship('Record', back_populates='rawrecord')
+
 # class Step(Base):
 #     """
 #     Steps model for managing groups of records and aggregates from events.
@@ -401,6 +403,10 @@ class Record(Base):
     >>> session.add(rgroup)
     >>> session.commit()
 
+    >>> rrecord = RawRecord(id=1, name="Test Raw Record", rawgroup_id=rgroup.id, rawevent_id = rgroup.rawevent_id)
+    >>> session.add(rrecord)
+    >>> session.commit()
+
     >>> event = Event(id=1, name="Test Event", rawevent_id=revent.id)
     >>> session.add(event)
     >>> session.commit()
@@ -409,15 +415,27 @@ class Record(Base):
     >>> session.add(group)
     >>> session.commit()
     
-    >>> record = Record(id=1, name="Test Record", group_id=group.id)
+    >>> record = Record(id=1, name="Test Record", rawrecord_id=rrecord.id , group_id=group.id)
     >>> session.add(record)
     >>> session.commit()
 
-    >>> event.name
-    'Test Event'
+    >>> record.name
+    'Test Record'
 
-    >>> group.name
+    >>> record.rawrecord_id
+    1
+
+    >>> record.rawrecord.name
+    'Test Raw Record'
+
+    >>> record.group_id
+    1
+
+    >>> record.group.name
     'Test Group'
+
+    >>> record.group.event.name
+    'Test Event'
 
     >>> session.query(Group).first().name
     'Test Group'
@@ -438,6 +456,9 @@ class Record(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
     version = Column(String, nullable=True)
+
+    rawrecord_id = Column(Integer, ForeignKey('rawRecords.id'), nullable=False)
+    rawrecord = relationship('RawRecord', back_populates='records')
 
     group_id = Column(Integer, ForeignKey('groups.id'), nullable=False)
     group = relationship('Group', back_populates='records')
