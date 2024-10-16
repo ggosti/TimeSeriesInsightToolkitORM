@@ -7,9 +7,10 @@ import pandas as pd
 import json
 import datetime
 import pathlib
+from pprint import pprint
 
-from models import Base, RawEvent, RawGroup, RawRecord, Event,  Group #Step, Record, Aggregate
-from schemas import RawEventSchema, RawGroupSchema, RawRecordSchema, EventSchema, GroupSchema #StepSchema, RecordSchema
+from models import Base, RawEvent, RawGroup, RawRecord, Event,  Group, Record #Step, Aggregate
+from schemas import RawEventSchema, RawGroupSchema, RawRecordSchema, EventSchema, GroupSchema, RecordSchema #StepSchema
 
 
 raw_event_schema = RawEventSchema()
@@ -20,6 +21,7 @@ raw_records_schema = RawRecordSchema(many=True)
 events_schema = EventSchema(many=True)
 group_schema = GroupSchema()
 groups_schema = GroupSchema(many=True)
+reocrds_schema = RecordSchema(many=True)
 
 import config
 recordsDirs = config.path #'/home/gosti/capturedata/' #'C:/Users/g_gos/Downloads/capturedata/' #config.path #'test/records/'  #'/var/www/html/records/' #'C:/Users/g_gos/records/'
@@ -46,7 +48,7 @@ session.query(RawRecord).delete()
 #session.query(Step).delete()
 session.query(Event).delete()
 session.query(Group).delete()
-#session.query(Record).delete()
+session.query(Record).delete()
 #session.query(Aggregate).delete()
 #session.commit()#
 
@@ -244,3 +246,21 @@ print([g.name for g in groupsClsList])
 ## Add events to the session
 session.add_all(groupsClsList)
 session.commit()
+
+# -----------
+# -- Add Records mirrowing Raw Records
+# -----------
+
+# get raw records and generate coresponding records table
+rawrecords = session.query(RawRecord).all()
+rawrecord_data = raw_records_schema.dump(rawrecords)
+
+record_data = []
+for rr in rawrecord_data:
+    pprint(rr)
+    rr['event_id'] = rr['rawevent_id']
+    rr['group_id'] = rr['rawgroup_id']
+    rr['rawrecord_id']=rr['id']
+    del rr['rawevent_id']
+    del rR['rawgroup_id']
+    rr['version'] = 'Raw'
